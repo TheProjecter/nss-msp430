@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<workspace>
+  <project>
+    <path>$WS_DIR$\hub\nss_hub.ewp</path>
+  </project>
+  <project>
+    <path>$WS_DIR$\node\nss_node.ewp</path>
+  </project>
+  <project>
+    <path>$WS_DIR$\repeater\nss_repeater.ewp</path>
+  </project>
+  <batchBuild/>
+</workspace>
+
+
