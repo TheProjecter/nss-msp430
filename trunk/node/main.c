@@ -50,10 +50,15 @@ void main ( void ) {
   TACCR0 = 12000;
   TACTL = MC_1+TASSEL_1;  
   
-  // Initialize Device States
+  // Initialize device states
   alarmed = 0;
   broadcast = 0;
   link_mode = 1;
+  
+  // Setup packet info
+  tx_packet.frame[0] = 8+20;
+  tx_packet.frame[SRC_ADDR] = MY_ADDR;
+  tx_packet.frame[DST_ADDR] = 0;
   
   // Turn on both LEDs to signal initialization complete
   P1OUT |= (LED_RED+LED_GREEN);
@@ -79,9 +84,6 @@ void main ( void ) {
   
     // Send any pending messages
     if (broadcast) {
-      tx_packet.frame[0] = 8+20;
-      tx_packet.frame[SRC_ADDR] = MY_ADDR;
-      tx_packet.frame[DST_ADDR] = 0;
       tx_packet.frame[CMD] = tx_cmd;
       MRFI_Transmit(&tx_packet, MRFI_TX_TYPE_FORCED);
     }
@@ -90,6 +92,8 @@ void main ( void ) {
 
 #pragma vector=TIMERA0_VECTOR
 __interrupt void Timer_A ( void ) {
+  
+  // Wake up CPU after ISR exits
   __bic_SR_register_on_exit(LPM3_bits);
 }
 

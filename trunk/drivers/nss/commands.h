@@ -6,8 +6,8 @@
 #define ACK_ALARM    0x04
 #define RESET_NODE   0x05
 #define ACK_RESET    0x06
-//#define UNUSED 0x07
-//#define UNUSED 0x08
+#define STAT_REQ     0x07
+#define NODE_OK      0x08
 //#define UNUSED 0x09
 //#define UNUSED 0x0A
 //#define UNUSED 0x0B
