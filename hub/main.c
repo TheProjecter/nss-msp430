@@ -2,19 +2,17 @@
 #include "radios/family1/mrfi_spi.h"
 #include "commands.h"
 
-#define MY_ADDR 0
+#define MY_ADDR   0
 #define MAX_NODES 10
 
-#define ONLINE 0
-#define ALARM 1
-
-unsigned short int node_data[MAX_NODES][3];
+uint8_t free_addr;
+uint8_t hub;
+uint8_t node_data[MAX_NODES];
 
 void MRFI_GpioIsr( void );
 
 void main( void ) {
-  unsigned int alarm_mode;
-  
+
   // Initialize Board Devices
   BSP_Init();
   MRFI_Init();
@@ -34,12 +32,14 @@ void main( void ) {
   TACCR0 = 12000;
   TACTL = MC_1+TASSEL_1; 
   
-  // Initialize hub data
-  unsigned int i;
+  // Initialize hub settings
+  hub &= ~(BROADCAST+ALARMED);
+  free_addr = MAX_NODES;
   
-  for (i = 0; i < MAX_NODES; i++) {
-    node_data[i][ONLINE] = 0;
-    node_data[i][ALARM]  = 0;
+  // Initialize node data
+  int8_t i;  
+  for (i = (MAX_NODES-1); i >= 0; i--) {
+    node_data[i] = 0;
   }
   
   // Turn on power LED
@@ -50,15 +50,15 @@ void main( void ) {
     __bis_SR_register(GIE+LPM3_bits);
     
     // Check if any nodes are alarmed
-    alarm_mode = 0;
-    for (i = 0; i < MAX_NODES; i++) {
-      if (node_data[i][ALARM]) {
-        alarm_mode = 1;
+    hub &= ~ALARMED;
+    for (i = MAX_NODES-1; i >= 0; i--) {
+      if (node_data[i]&ALARMED) {
+        hub |= ALARMED;
       }
     }
     
     // Set alarm if in alarm mode
-    if (alarm_mode) {
+    if (hub&ALARMED) {
       P1OUT |= LED_RED;  
     } else {
       P1OUT &= ~LED_RED;  
@@ -68,6 +68,8 @@ void main( void ) {
 
 #pragma vector=TIMERA0_VECTOR
 __interrupt void Timer_A ( void ) {
+
+  // Wake up CPU after ISR exits
   __bic_SR_register_on_exit(LPM3_bits);
 }
 
@@ -79,16 +81,17 @@ __interrupt void Port1_ISR ( void ) {
 #pragma vector=PORT2_VECTOR
 __interrupt void Port2_ISR ( void ) {
 
+  // Required for RF interrupt
   MRFI_GpioIsr();  
 }
 
 void MRFI_RxCompleteISR() {
   mrfiPacket_t rx_packet;
-  unsigned short int rx_cmd;
-  unsigned short int rx_dst;
-  unsigned short int rx_src;  
-  unsigned short int tx_cmd;  
-  unsigned int broadcast;
+  uint8_t rx_cmd;
+  uint8_t rx_dst;
+  uint8_t rx_src;  
+  uint8_t tx_cmd;
+  uint8_t tx_data;  
   
   // Grab packet from buffer
   MRFI_Receive(&rx_packet);
@@ -99,37 +102,48 @@ void MRFI_RxCompleteISR() {
   rx_cmd = rx_packet.frame[CMD];  
 
   // Perform address filtering  
-  if (!(rx_src == MY_ADDR) && rx_dst == MY_ADDR) {
+  if (rx_dst == MY_ADDR) {
     switch (rx_cmd) {
       case NEW_NODE:
-        node_data[rx_src][ONLINE] = 1;
-        node_data[rx_src][ALARM]  = 0;
-        tx_cmd = ACK_NODE;
-        broadcast = 1;
+        if (free_addr > 0) {
+          int8_t curr_addr;
+          
+          for (curr_addr = MAX_NODES-1; curr_addr >= 0; curr_addr--) {
+            if (!(node_data[curr_addr]&PAIRED)) { // Address is free to use
+              free_addr--;
+              node_data[curr_addr] |= (PAIRED+ALIVE);
+              tx_cmd = ACK_NODE;
+              tx_data = curr_addr+1;
+              hub |= BROADCAST;
+              break;
+            }
+          }
+        }
         break;
       case ALARMED_NODE:
-        node_data[rx_src][ALARM] = 1;
+        node_data[rx_src-1] |= ALARMED;
         tx_cmd = ACK_ALARM;
-        broadcast = 1;
+        hub |= BROADCAST;
         break;
       case RESET_NODE:
-        node_data[rx_src][ALARM] = 0;
+        node_data[rx_src-1] &= ~ALARMED;
         tx_cmd = ACK_RESET;
-        broadcast = 1;
+        hub |= BROADCAST;
         break;
     }
   } else {
-    broadcast = 0;
+    hub &= ~BROADCAST;
   }
   
   // Send any pending messages
-  if (broadcast) {
+  if (hub&BROADCAST) {
     mrfiPacket_t tx_packet;
     
     tx_packet.frame[0] = 8+20;
     tx_packet.frame[SRC_ADDR] = MY_ADDR;
     tx_packet.frame[DST_ADDR] = rx_src;
     tx_packet.frame[CMD] = tx_cmd;
+    tx_packet.frame[DATA] = tx_data;
     MRFI_Transmit(&tx_packet, MRFI_TX_TYPE_FORCED);
   }
 }
