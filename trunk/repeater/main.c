@@ -1,6 +1,8 @@
 #include "mrfi.h"
 #include "radios/family1/mrfi_spi.h"
 
+void MRFI_GpioIsr( void );
+
 int main( void )
 {
   BSP_Init();
@@ -8,7 +10,13 @@ int main( void )
   mrfiSpiWriteReg(0x3E, 0xFF); // Increase Tx power
   MRFI_WakeUp();
   MRFI_RxOn();
-  __bis_SR_register(GIE+LPM4_bits);
+  __bis_SR_register(GIE+LPM3_bits);
+}
+
+#pragma vector=PORT2_VECTOR
+__interrupt void Port2_ISR ( void ) {
+
+  MRFI_GpioIsr();  
 }
 
 void MRFI_RxCompleteISR() {

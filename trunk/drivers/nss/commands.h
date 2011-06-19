@@ -1,22 +1,18 @@
-/* RF Commands */
-//#define UNUSED 0x00
+/* RF commands: Node */
 #define NEW_NODE     0x01
-#define ACK_NODE     0x02
-#define ALARMED_NODE 0x03
-#define ACK_ALARM    0x04
-#define RESET_NODE   0x05
-#define ACK_RESET    0x06
-#define STAT_REQ     0x07
-#define NODE_OK      0x08
-//#define UNUSED 0x09
-//#define UNUSED 0x0A
-//#define UNUSED 0x0B
-//#define UNUSED 0x0C
-//#define UNUSED 0x0D
-//#define UNUSED 0x0E
+#define ALARMED_NODE 0x02
+#define RESET_NODE   0x03
+#define NODE_ALIVE   0x04
 #define LOW_BATT     0x0F
 
-/* RF Packet Information */
+/* RF commands: Hub */
+#define ACK_NODE     0x11
+#define ACK_ALARM    0x12
+#define ACK_RESET    0x13
+#define ACK_ALIVE    0x14
+#define ACK_LOW_BATT 0x1F
+
+/* RF packet fields */
 #define SRC_ADDR 4
 #define DST_ADDR 8
 #define CMD      9
@@ -26,3 +22,12 @@
 #define LED_RED     0x01
 #define LED_GREEN   0x02
 #define PUSH_BUTTON 0x04
+
+/* Device registers */
+#define PAIRED     0x01
+#define ALARMED    0x02
+#define BROADCAST  0x04
+#define LINK_MODE  0x08
+#define WAKE_CPU   0x10
+#define ALIVE      0x20
+#define WAKE_RADIO 0x40
