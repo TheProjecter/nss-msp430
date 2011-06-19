@@ -14,24 +14,19 @@
 #define TRIGGER_L2H 0x01 // P2.0 - Pin 3
 #define TRIGGER_H2L 0x02 // P2.1 - Pin 4
 
-#define MY_ADDR 4
-
-unsigned int alarmed;
-unsigned int broadcast;
-unsigned int link_mode;
+uint8_t my_addr;
+uint8_t node;
 
 void MRFI_GpioIsr( void );
 
 void main ( void ) { 
-  unsigned short int tx_cmd;
+  uint8_t tx_cmd;
   mrfiPacket_t tx_packet;
 
   // Initialize board devices 
   BSP_Init();
   MRFI_Init();
   mrfiSpiWriteReg(0x3E, 0xFF); // Increase Tx power
-  MRFI_WakeUp();
-  MRFI_RxOn();
 
   // Setup I/O
   P1DIR |= (LED_RED+LED_GREEN);        // Enable LEDs  
@@ -50,30 +45,25 @@ void main ( void ) {
   TACCR0 = 12000;
   TACTL = MC_1+TASSEL_1;  
   
-  // Initialize device states
-  alarmed = 0;
-  broadcast = 0;
-  link_mode = 1;
-  
-  // Setup packet info
-  tx_packet.frame[0] = 8+20;
-  tx_packet.frame[SRC_ADDR] = MY_ADDR;
-  tx_packet.frame[DST_ADDR] = 0;
+  // Initialize device settings
+  my_addr = 0;
+  node |= (LINK_MODE+WAKE_RADIO);
+  node &= ~(ALARMED+BROADCAST);
   
   // Turn on both LEDs to signal initialization complete
   P1OUT |= (LED_RED+LED_GREEN);
   
   // Enter main loop
-  while(1) {
+  while(1) {    
     __bis_SR_register(GIE+LPM3_bits);
 
-    if (link_mode) {
+    if (node&LINK_MODE) {
       P1OUT ^= (LED_RED+LED_GREEN);
       tx_cmd = NEW_NODE;
-      broadcast = 1;
+      node |= BROADCAST;
     } else {
       // Check state of node
-      if (alarmed) {
+      if (node&ALARMED) {
         P1OUT ^= LED_RED;
         tx_cmd = ALARMED_NODE;    
       } else {
@@ -81,12 +71,28 @@ void main ( void ) {
         tx_cmd = RESET_NODE;
       }    
     }
-  
+    
+    // Wake radio if needed
+    if (node&WAKE_RADIO) {
+      MRFI_WakeUp();
+      MRFI_RxOn();
+    }
+
     // Send any pending messages
-    if (broadcast) {
+    if (node&BROADCAST) {
+  
+      // Setup packet info
+      tx_packet.frame[0] = 8+20;
+      tx_packet.frame[SRC_ADDR] = my_addr;
+      tx_packet.frame[DST_ADDR] = 0;  
       tx_packet.frame[CMD] = tx_cmd;
       MRFI_Transmit(&tx_packet, MRFI_TX_TYPE_FORCED);
     }
+    
+    // Put radio to sleep
+    if (!(node&WAKE_RADIO)) {
+      MRFI_Sleep();
+    }  
   }
 }
 
@@ -113,13 +119,13 @@ __interrupt void Port2_ISR ( void ) {
     P2IFG &= ~TRIGGER_H2L;
     
     if (P4IN&MODE_SELECT) {
-      alarmed = 1;
+      node |= ALARMED;
     } else {
-      alarmed = 0;
+      node &= ~ALARMED;
     }    
  
-    if (!link_mode) {
-      broadcast = 1;
+    if (!(node&LINK_MODE)) {
+      node |= (WAKE_RADIO+BROADCAST);
     }
   }  
   
@@ -128,44 +134,44 @@ __interrupt void Port2_ISR ( void ) {
     P2IFG &= ~TRIGGER_L2H;
     
     if (P4IN&MODE_SELECT) {
-      alarmed = 0;
+      node &= ~ALARMED;
     } else {
-      alarmed = 1;
+      node |= ALARMED;
     }    
 
-    if (!link_mode) {
-      broadcast = 1;
+    if (!(node&LINK_MODE)) {
+      node |= (WAKE_RADIO+BROADCAST);
     }
   }    
 }
 
 void MRFI_RxCompleteISR( void ) {
   mrfiPacket_t rx_packet;
-  unsigned short int rx_cmd;
-  unsigned short int rx_dst;
-  unsigned short int rx_src;
+  uint8_t rx_dst;
+  uint8_t rx_cmd;
+  uint8_t rx_data;
   
   // Grab packet from buffer
   MRFI_Receive(&rx_packet);
 
   // Gather packet data
   rx_dst = rx_packet.frame[DST_ADDR];
-  rx_src = rx_packet.frame[SRC_ADDR];
   rx_cmd = rx_packet.frame[CMD];
-
-  // Perform address filtering
-  if (!(rx_src == MY_ADDR) && (rx_dst == MY_ADDR)) {
+  rx_data = rx_packet.frame[DATA];
+  
+  // Perform address filtering  
+  if ((rx_dst == my_addr) || (!(node&PAIRED))) {
     switch (rx_cmd) {
       case ACK_NODE:
-        P1OUT |= LED_GREEN;
-        link_mode = 0;
-        broadcast = 0;
+        node |= PAIRED;
+        node &= ~(LINK_MODE+BROADCAST+WAKE_RADIO);
+        my_addr = rx_data;
         break;
       case ACK_ALARM:
-        broadcast = 0;
+        node &= ~(BROADCAST+WAKE_RADIO);
         break;
       case ACK_RESET: 
-        broadcast = 0;
+        node &= ~(BROADCAST+WAKE_RADIO);
         break;
     }
   }
