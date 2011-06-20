@@ -163,7 +163,7 @@
         </option>
         <option>
           <name>TargetVoltage</name>
-          <state>3.3</state>
+          <state>3.0</state>
         </option>
         <option>
           <name>AllowLockedFlashAccessP7</name>
@@ -224,7 +224,7 @@
         </option>
         <option>
           <name>OTargetVccTypeDefault</name>
-          <state>0</state>
+          <state>1</state>
         </option>
         <option>
           <name>CCBetaDll</name>

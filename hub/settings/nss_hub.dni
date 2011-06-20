@@ -11,16 +11,16 @@ ActionState=1
 Enabled=0
 ShowSource=1
 [State Storage]
-Control Register=35618
+Control Register=0
 [Sequencer]
-Control Register=35618
-NextState0=35618
-NextState1=35618
+Control Register=0
+NextState0=0
+NextState1=0
 [Action Register]
 Break=3
 State Storage=1
 [DebugChecksum]
-Checksum=-88420190
+Checksum=1526937132
 [DisAssemblyWindow]
 NumStates=_ 1
 State 1=_ 1
@@ -40,8 +40,16 @@ UseTrigger=1
 TriggerName=main
 LimitSize=0
 ByteLimit=50
+[Log file]
+LoggingEnabled=_ 0
+LogFile=_ ""
+Category=_ 0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
 [Breakpoints]
-Count=0
+Bp0=_ "STD_CODE" "{$PROJ_DIR$\main.c}.48.3@1" 1 0 0 0 "" 0 ""
+Count=1
 [FET]
 Clock mode=38
 Extended Clock mode=-1
@@ -62,13 +70,6 @@ SP=0
 SR=0
 all registers=0
 File name=
-[Log file]
-LoggingEnabled=_ 0
-LogFile=_ ""
-Category=_ 0
-[TermIOLog]
-LoggingEnabled=_ 0
-LogFile=_ ""
 [Aliases]
 Count=0
 SuppressDialog=0
