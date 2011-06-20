@@ -15,10 +15,21 @@ void main( void ) {
 
   // Initialize Board Devices
   BSP_Init();
+  
+  // Initialize Radio
   MRFI_Init();
   mrfiSpiWriteReg(0x3E, 0xFF); // Increase Tx power
   MRFI_WakeUp();
   MRFI_RxOn();
+  
+  // Initialize Comm
+  P3SEL |= 0x30;
+  UCA0CTL1 = UCSSEL_2;
+  UCA0BR0 = 0x41;
+  UCA0BR1 = 0x3;
+  UCA0MCTL = UCBRS_2;
+  UCA0CTL1 &= ~UCSWRST;
+  IE2 |= UCA0RXIE;
   
   // Setup I/O
   P1DIR |= (LED_RED+LED_GREEN);
