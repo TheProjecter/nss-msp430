@@ -50,7 +50,7 @@
       
       
       
-    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\node\main.c</Filename><XPos>0</XPos><YPos>84</YPos><SelStart>537</SelStart><SelEnd>537</SelEnd></Tab><ActiveTab>0</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\drivers\nss\commands.h</Filename><XPos>0</XPos><YPos>15</YPos><SelStart>715</SelStart><SelEnd>715</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
+    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\node\main.c</Filename><XPos>0</XPos><YPos>135</YPos><SelStart>2035</SelStart><SelEnd>2035</SelEnd></Tab><ActiveTab>0</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\drivers\nss\commands.h</Filename><XPos>0</XPos><YPos>15</YPos><SelStart>714</SelStart><SelEnd>714</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
     <Positions>
       
       
