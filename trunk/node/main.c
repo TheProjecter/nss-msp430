@@ -20,8 +20,9 @@ uint8_t node;
 void MRFI_GpioIsr( void );
 
 void main ( void ) { 
-  uint8_t tx_cmd;
   mrfiPacket_t tx_packet;
+  uint8_t tx_cmd;
+  uint8_t tx_data;
 
   // Initialize board devices 
   BSP_Init();
@@ -47,8 +48,7 @@ void main ( void ) {
   
   // Initialize device settings
   my_addr = 0;
-  node |= (LINK_MODE+WAKE_RADIO);
-  node &= ~(ALARMED+BROADCAST);
+  node = LINK_MODE;
   
   // Turn on both LEDs to signal initialization complete
   P1OUT |= (LED_RED+LED_GREEN);
@@ -56,20 +56,44 @@ void main ( void ) {
   // Enter main loop
   while(1) {    
     __bis_SR_register(GIE+LPM3_bits);
-
-    if (node&LINK_MODE) {
+    
+    if (node&LINK_MODE) {      
       P1OUT ^= (LED_RED+LED_GREEN);
       tx_cmd = NEW_NODE;
-      node |= BROADCAST;
+      node |= (WAKE_RADIO+BROADCAST);
+      
     } else {
-      // Check state of node
+      if (node&TRIGGERED) {
+        if (node&ALARMED) {
+          tx_cmd = ALARMED_NODE;    
+        } else {
+          tx_cmd = RESET_NODE;
+        }
+        node |= (WAKE_RADIO+BROADCAST);
+      } else {
+        
+      }
+      
+      // Display state of node
       if (node&ALARMED) {
         P1OUT ^= LED_RED;
-        tx_cmd = ALARMED_NODE;    
       } else {
         P1OUT &= ~LED_RED;
-        tx_cmd = RESET_NODE;
-      }    
+      }
+    }
+    
+    if (node&GET_VCC) {      
+      // Measure Vcc voltage
+      volatile long temp;
+      
+      ADC10CTL1 = INCH_11; 
+      ADC10CTL0 = SREF_1 + ADC10SHT_2 + REFON + ADC10ON + ADC10IE + REF2_5V;
+      __delay_cycles(240);
+      ADC10CTL0 |= ENC + ADC10SC;
+      __bis_SR_register(CPUOFF + GIE);
+      temp = ADC10MEM;
+      tx_data = (temp*25)/512;
+      node &= ~GET_VCC;      
     }
     
     // Wake radio if needed
@@ -86,6 +110,7 @@ void main ( void ) {
       tx_packet.frame[SRC_ADDR] = my_addr;
       tx_packet.frame[DST_ADDR] = 0;  
       tx_packet.frame[CMD] = tx_cmd;
+      tx_packet.frame[DATA] = tx_data;
       MRFI_Transmit(&tx_packet, MRFI_TX_TYPE_FORCED);
     }
     
@@ -125,7 +150,7 @@ __interrupt void Port2_ISR ( void ) {
     }    
  
     if (!(node&LINK_MODE)) {
-      node |= (WAKE_RADIO+BROADCAST);
+      node |= TRIGGERED;
     }
   }  
   
@@ -140,7 +165,7 @@ __interrupt void Port2_ISR ( void ) {
     }    
 
     if (!(node&LINK_MODE)) {
-      node |= (WAKE_RADIO+BROADCAST);
+      node |= TRIGGERED;
     }
   }    
 }
@@ -168,11 +193,19 @@ void MRFI_RxCompleteISR( void ) {
         my_addr = rx_data;
         break;
       case ACK_ALARM:
-        node &= ~(BROADCAST+WAKE_RADIO);
+        node &= ~(TRIGGERED+BROADCAST+WAKE_RADIO);
         break;
       case ACK_RESET: 
-        node &= ~(BROADCAST+WAKE_RADIO);
+        node &= ~(TRIGGERED+BROADCAST+WAKE_RADIO);
+        break;
+      case ACK_ALIVE:
         break;
     }
   }
+}
+
+#pragma vector=ADC10_VECTOR
+__interrupt void ADC10_ISR(void)
+{
+  __bic_SR_register_on_exit(CPUOFF);
 }

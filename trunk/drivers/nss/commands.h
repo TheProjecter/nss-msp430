@@ -28,6 +28,7 @@
 #define ALARMED    0x02
 #define BROADCAST  0x04
 #define LINK_MODE  0x08
-#define WAKE_CPU   0x10
+#define GET_VCC    0x10
 #define ALIVE      0x20
 #define WAKE_RADIO 0x40
+#define TRIGGERED  0x80
