@@ -6,16 +6,23 @@
   <configuration>
     <name>Debug</name>
     <outputs>
-      <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.h</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_board_defs.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\c\string.h</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_config.h</file>
-      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi.h</file>
       <file>$PROJ_DIR$\..\drivers\mrfi\radios\family1\mrfi_spi.h</file>
-      <file>$PROJ_DIR$\Debug\Exe\nss_hub.d43</file>
-      <file>$PROJ_DIR$\Debug\Obj\mrfi.pbi</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\bsp.h</file>
       <file>$PROJ_DIR$\..\drivers\mrfi\radios\family1\mrfi_spi.c</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\string.h</file>
+      <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.h</file>
+      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi.c</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\bsp.c</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\bsp_macros.h</file>
+      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi.h</file>
+      <file>$PROJ_DIR$\..\drivers\nss\commands.h</file>
+      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi_defs.h</file>
+      <file>$PROJ_DIR$\main.c</file>
       <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Threads.h</file>
+      <file>$PROJ_DIR$\Debug\Exe\nss_hub.d43</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_config.h</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_board_defs.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\mrfi.pbi</file>
       <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_led_defs.h</file>
       <file>$TOOLKIT_DIR$\inc\dlib\c\ysizet.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_external\mrfi_board.c</file>
@@ -23,114 +30,56 @@
       <file>$PROJ_DIR$\..\drivers\mrfi\radios\common\mrfi_f1f2.c</file>
       <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_board.c</file>
       <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_drivers.c</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_driver_defs.h</file>
       <file>$PROJ_DIR$\Debug\Obj\bsp.r43</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_driver_defs.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_external\mrfi_board_defs.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\bsp_buttons.h</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_generic_leds.h</file>
       <file>$TOOLKIT_DIR$\inc\msp430.h</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_generic_leds.h</file>
       <file>$TOOLKIT_DIR$\config\lnk430F2274.xcl</file>
       <file>$PROJ_DIR$\..\drivers\bsp\mcus\bsp_msp430_defs.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\c\yvals.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\bsp_leds.h</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\yvals.h</file>
       <file>$TOOLKIT_DIR$\inc\intrinsics.h</file>
       <file>$TOOLKIT_DIR$\inc\msp430f2274.h</file>
       <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Product.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_buttons.c</file>
-      <file>$PROJ_DIR$\..\drivers\mrfi\smartrf\CC2500\smartrf_CC2500.h</file>
       <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.r43</file>
-      <file>$PROJ_DIR$\Debug\Obj\main.pbi</file>
-      <file>$TOOLKIT_DIR$\inc\in430.h</file>
+      <file>$PROJ_DIR$\..\drivers\mrfi\smartrf\CC2500\smartrf_CC2500.h</file>
       <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Defaults.h</file>
+      <file>$TOOLKIT_DIR$\inc\in430.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\main.pbi</file>
       <file>$PROJ_DIR$\Debug\Obj\nss_hub.pbd</file>
+      <file>$PROJ_DIR$\..\drivers\mrfi\radios\family1\mrfi_radio.c</file>
       <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_button_defs.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_generic_buttons.h</file>
-      <file>$PROJ_DIR$\..\drivers\mrfi\radios\family1\mrfi_radio.c</file>
       <file>$TOOLKIT_DIR$\inc\dlib\c\ycheck.h</file>
       <file>$PROJ_DIR$\Debug\Obj\main.r43</file>
-      <file>$PROJ_DIR$\..\node\main.c</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_leds.c</file>
       <file>$PROJ_DIR$\Debug\Obj\mrfi.r43</file>
-      <file>$PROJ_DIR$\Debug\Obj\bsp.pbi</file>
       <file>$TOOLKIT_DIR$\inc\dlib\c\xencoding_limits.h</file>
-      <file>$PROJ_DIR$\..\drivers\nss\commands.h</file>
-      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi_defs.h</file>
-      <file>$PROJ_DIR$\main.c</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\bsp.h</file>
-      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi.c</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\bsp.c</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\bsp_macros.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\bsp.pbi</file>
     </outputs>
-    <file>
-      <name>[ROOT_NODE]</name>
-      <outputs>
-        <tool>
-          <name>XLINK</name>
-          <file> 6</file>
-        </tool>
-      </outputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Debug\Exe\nss_hub.d43</name>
-      <inputs>
-        <tool>
-          <name>XLINK</name>
-          <file> 23 18 41 44 32</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Debug\Obj\nss_hub.pbd</name>
-      <inputs>
-        <tool>
-          <name>BILINK</name>
-          <file> 45 33 7</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\main.c</name>
-      <outputs>
-        <tool>
-          <name>BICOMP</name>
-          <file> 33</file>
-        </tool>
-        <tool>
-          <name>ICC430</name>
-          <file> 41</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>BICOMP</name>
-          <file> 4 50 1 24 3 53 48 26 10 21 5 47</file>
-        </tool>
-        <tool>
-          <name>ICC430</name>
-          <file> 4 50 1 24 22 28 34 27 3 53 48 26 10 21 5 47</file>
-        </tool>
-      </inputs>
-    </file>
     <file>
       <name>$PROJ_DIR$\..\drivers\mrfi\mrfi.c</name>
       <outputs>
         <tool>
           <name>BICOMP</name>
-          <file> 7</file>
+          <file> 16</file>
         </tool>
         <tool>
           <name>ICC430</name>
-          <file> 44</file>
+          <file> 50</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>BICOMP</name>
-          <file> 48 50 1 24 3 53 26 10 21 39 4 19 5 13 31 8 14 12</file>
+          <file> 10 1 15 31 14 7 32 17 29 44 8 26 0 20 39 2 21 19</file>
         </tool>
         <tool>
           <name>ICC430</name>
-          <file> 48 50 1 24 22 28 34 27 3 53 26 10 21 39 2 40 25 35 0 29 46 9 11 4 19 5 13 31 8 14 12</file>
+          <file> 10 1 15 31 28 35 41 34 14 7 32 17 29 44 3 47 33 40 4 36 51 12 18 8 26 0 20 39 2 21 19</file>
         </tool>
       </inputs>
     </file>
@@ -139,21 +88,71 @@
       <outputs>
         <tool>
           <name>BICOMP</name>
-          <file> 45</file>
+          <file> 52</file>
         </tool>
         <tool>
           <name>ICC430</name>
-          <file> 18</file>
+          <file> 24</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>BICOMP</name>
-          <file> 50 1 24 3 53 17</file>
+          <file> 1 15 31 14 7 25</file>
         </tool>
         <tool>
           <name>ICC430</name>
-          <file> 50 1 24 22 28 34 27 3 53 17 15 16 26 10 21 20 37 38 43 30</file>
+          <file> 1 15 31 28 35 41 34 14 7 25 22 23 32 17 29 27 45 46 49 37</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\main.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 42</file>
+        </tool>
+        <tool>
+          <name>ICC430</name>
+          <file> 48</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 8 1 15 31 14 7 10 32 17 29 0 9</file>
+        </tool>
+        <tool>
+          <name>ICC430</name>
+          <file> 8 1 15 31 28 35 41 34 14 7 10 32 17 29 0 9</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\Debug\Exe\nss_hub.d43</name>
+      <inputs>
+        <tool>
+          <name>XLINK</name>
+          <file> 30 24 48 50 38</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>[ROOT_NODE]</name>
+      <outputs>
+        <tool>
+          <name>XLINK</name>
+          <file> 13</file>
+        </tool>
+      </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\Debug\Obj\nss_hub.pbd</name>
+      <inputs>
+        <tool>
+          <name>BILINK</name>
+          <file> 52 42 16</file>
         </tool>
       </inputs>
     </file>
