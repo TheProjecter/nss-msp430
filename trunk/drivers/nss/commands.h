@@ -31,4 +31,4 @@
 #define GET_VCC    0x10
 #define ALIVE      0x20
 #define WAKE_RADIO 0x40
-#define TRIGGERED  0x80
+#define IDLE       0x80

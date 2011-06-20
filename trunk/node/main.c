@@ -63,16 +63,14 @@ void main ( void ) {
       node |= (WAKE_RADIO+BROADCAST);
       
     } else {
-      if (node&TRIGGERED) {
+      if (!(node&IDLE)) {
         if (node&ALARMED) {
           tx_cmd = ALARMED_NODE;    
         } else {
           tx_cmd = RESET_NODE;
         }
         node |= (WAKE_RADIO+BROADCAST);
-      } else {
-        
-      }
+      } 
       
       // Display state of node
       if (node&ALARMED) {
@@ -150,7 +148,7 @@ __interrupt void Port2_ISR ( void ) {
     }    
  
     if (!(node&LINK_MODE)) {
-      node |= TRIGGERED;
+      node &= ~IDLE;
     }
   }  
   
@@ -165,7 +163,7 @@ __interrupt void Port2_ISR ( void ) {
     }    
 
     if (!(node&LINK_MODE)) {
-      node |= TRIGGERED;
+      node &= ~IDLE;
     }
   }    
 }
@@ -188,15 +186,17 @@ void MRFI_RxCompleteISR( void ) {
   if ((rx_dst == my_addr) || (!(node&PAIRED))) {
     switch (rx_cmd) {
       case ACK_NODE:
-        node |= PAIRED;
+        node |= (PAIRED+IDLE);
         node &= ~(LINK_MODE+BROADCAST+WAKE_RADIO);
         my_addr = rx_data;
         break;
       case ACK_ALARM:
-        node &= ~(TRIGGERED+BROADCAST+WAKE_RADIO);
+        node |= IDLE;
+        node &= ~(BROADCAST+WAKE_RADIO);
         break;
-      case ACK_RESET: 
-        node &= ~(TRIGGERED+BROADCAST+WAKE_RADIO);
+      case ACK_RESET:
+        node |= IDLE;
+        node &= ~(BROADCAST+WAKE_RADIO);
         break;
       case ACK_ALIVE:
         break;
