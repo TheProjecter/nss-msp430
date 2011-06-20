@@ -59,6 +59,7 @@
       <file>$PROJ_DIR$\Debug\Obj\main.r43</file>
       <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.r43</file>
       <file>$PROJ_DIR$\Debug\Obj\bsp.r43</file>
+      <file>$PROJ_DIR$\..\hub\main.c</file>
     </outputs>
     <file>
       <name>[ROOT_NODE]</name>

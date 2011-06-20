@@ -140,6 +140,9 @@ void MRFI_RxCompleteISR() {
         node_data[rx_src-1] &= ~ALARMED;
         tx_cmd = ACK_RESET;
         hub |= BROADCAST;
+      case NODE_ALIVE:
+        tx_cmd = ACK_ALIVE;
+        hub |= BROADCAST;
         break;
     }
   } else {
