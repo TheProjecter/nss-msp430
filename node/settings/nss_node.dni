@@ -11,19 +11,19 @@ ActionState=1
 Enabled=0
 ShowSource=1
 [State Storage]
-Control Register=35882
+Control Register=35924
 [Sequencer]
-Control Register=35882
-NextState0=35882
-NextState1=35882
+Control Register=35924
+NextState0=34900
+NextState1=68
 [Action Register]
 Break=1
 State Storage=1
 [DebugChecksum]
-Checksum=-1086200590
+Checksum=-998047285
 [DisAssemblyWindow]
 NumStates=_ 1
-State 1=_ 1
+State 1=_ 0
 [InstructionProfiling]
 Enabled=_ 0
 [CodeCoverage]
@@ -40,6 +40,13 @@ UseTrigger=1
 TriggerName=main
 LimitSize=0
 ByteLimit=50
+[Log file]
+LoggingEnabled=_ 0
+LogFile=_ ""
+Category=_ 0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
 [Breakpoints]
 Bp0=_ "STD_CODE" "{$PROJ_DIR$\..\hub\main.c}.102.18@1" 0 0 0 0 "" 0 ""
 Count=1
@@ -63,13 +70,6 @@ SP=0
 SR=0
 all registers=0
 File name=
-[Log file]
-LoggingEnabled=_ 0
-LogFile=_ ""
-Category=_ 0
-[TermIOLog]
-LoggingEnabled=_ 0
-LogFile=_ ""
 [Aliases]
 A0=_ "C:\Users\ryan\Documents\MSP430 Files\nss\node\main.c" "U:\MSP430 Files\source_code\nss\node\main.c"
 A1=_ "U:\MSP430 Files\source_code\nss\drivers\bsp\bsp.c" "C:\Users\ryan\Documents\MSP430 Files\nss\drivers\bsp\bsp.c"

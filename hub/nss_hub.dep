@@ -29,6 +29,7 @@
       <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_button_defs.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_generic_buttons.h</file>
       <file>$PROJ_DIR$\Debug\Obj\main.r43</file>
+      <file>$PROJ_DIR$\..\node\main.c</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_leds.c</file>
       <file>$PROJ_DIR$\Debug\Obj\mrfi.r43</file>
       <file>$TOOLKIT_DIR$\inc\dlib\c\xencoding_limits.h</file>
@@ -65,7 +66,7 @@
       <outputs>
         <tool>
           <name>XLINK</name>
-          <file> 27</file>
+          <file> 28</file>
         </tool>
       </outputs>
     </file>
@@ -83,8 +84,21 @@
       </outputs>
       <inputs>
         <tool>
+          <name>BICOMP</name>
+          <file> 4 50 32 47 30 53 6 49 33 46 3 5</file>
+        </tool>
+        <tool>
           <name>ICC430</name>
-          <file> 4 49 31 46 43 8 15 9 29 52 6 48 32 45 3 5</file>
+          <file> 4 50 32 47 44 8 15 9 30 53 6 49 33 46 3 5</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\Debug\Obj\nss_hub.pbd</name>
+      <inputs>
+        <tool>
+          <name>BILINK</name>
+          <file> 27 16 31</file>
         </tool>
       </inputs>
     </file>
@@ -93,7 +107,7 @@
       <inputs>
         <tool>
           <name>XLINK</name>
-          <file> 44 39 22 24 12</file>
+          <file> 45 40 22 25 12</file>
         </tool>
       </inputs>
     </file>
@@ -102,17 +116,21 @@
       <outputs>
         <tool>
           <name>BICOMP</name>
-          <file> 30</file>
+          <file> 31</file>
         </tool>
         <tool>
           <name>ICC430</name>
-          <file> 24</file>
+          <file> 25</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
+          <name>BICOMP</name>
+          <file> 6 50 32 47 30 53 49 33 46 18 4 41 3 36 14 0 37 35</file>
+        </tool>
+        <tool>
           <name>ICC430</name>
-          <file> 6 49 31 46 43 8 15 9 29 52 48 32 45 18 1 19 47 13 2 10 25 28 33 4 40 3 35 14 0 36 34</file>
+          <file> 6 50 32 47 44 8 15 9 30 53 49 33 46 18 1 19 48 13 2 10 26 29 34 4 41 3 36 14 0 37 35</file>
         </tool>
       </inputs>
     </file>
@@ -121,17 +139,21 @@
       <outputs>
         <tool>
           <name>BICOMP</name>
-          <file> 26</file>
+          <file> 27</file>
         </tool>
         <tool>
           <name>ICC430</name>
-          <file> 39</file>
+          <file> 40</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
+          <name>BICOMP</name>
+          <file> 50 32 47 30 53 42</file>
+        </tool>
+        <tool>
           <name>ICC430</name>
-          <file> 49 31 46 43 8 15 9 29 52 41 37 38 48 32 45 42 20 21 23 11</file>
+          <file> 50 32 47 44 8 15 9 30 53 42 38 39 49 33 46 43 20 21 24 11</file>
         </tool>
       </inputs>
     </file>

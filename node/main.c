@@ -14,6 +14,8 @@
 #define TRIGGER_L2H 0x01 // P2.0 - Pin 3
 #define TRIGGER_H2L 0x02 // P2.1 - Pin 4
 
+#define PULSE_RATE 1
+
 uint8_t my_addr;
 uint8_t node;
 
@@ -23,6 +25,7 @@ void main ( void ) {
   mrfiPacket_t tx_packet;
   uint8_t tx_cmd;
   uint8_t tx_data;
+  int pulse;
 
   // Initialize board devices 
   BSP_Init();
@@ -48,6 +51,7 @@ void main ( void ) {
   
   // Initialize device settings
   my_addr = 0;
+  pulse = PULSE_RATE;
   node = LINK_MODE;
   
   // Turn on both LEDs to signal initialization complete
@@ -70,7 +74,16 @@ void main ( void ) {
           tx_cmd = RESET_NODE;
         }
         node |= (WAKE_RADIO+BROADCAST);
-      } 
+      } else {
+        if (pulse == 0) {
+          P1OUT |= LED_GREEN;
+          node |= (GET_VCC+WAKE_RADIO+BROADCAST);
+          pulse = PULSE_RATE;
+          tx_cmd = NODE_ALIVE;
+        } else {
+          pulse--;
+        }
+      }
       
       // Display state of node
       if (node&ALARMED) {
@@ -199,6 +212,8 @@ void MRFI_RxCompleteISR( void ) {
         node &= ~(BROADCAST+WAKE_RADIO);
         break;
       case ACK_ALIVE:
+        P1OUT &= ~LED_GREEN;
+        node &= ~(BROADCAST+WAKE_RADIO);
         break;
     }
   }
