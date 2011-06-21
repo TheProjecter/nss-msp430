@@ -98,11 +98,13 @@ __interrupt void Port2_ISR ( void ) {
 
 void MRFI_RxCompleteISR() {
   mrfiPacket_t rx_packet;
-  uint8_t rx_cmd;
-  uint8_t rx_dst;
   uint8_t rx_src;  
+  uint8_t rx_dst;
+  uint8_t rx_cmd;
+  uint8_t rx_data;
   uint8_t tx_cmd;
   uint8_t tx_data;  
+  char output_txt[] = {"\r\n . v"};
   
   // Grab packet from buffer
   MRFI_Receive(&rx_packet);
@@ -110,7 +112,8 @@ void MRFI_RxCompleteISR() {
   // Gather packet data
   rx_src = rx_packet.frame[SRC_ADDR];
   rx_dst = rx_packet.frame[DST_ADDR];
-  rx_cmd = rx_packet.frame[CMD];  
+  rx_cmd = rx_packet.frame[CMD];
+  rx_data = rx_packet.frame[DATA];  
 
   // Perform address filtering  
   if (rx_dst == MY_ADDR) {
@@ -141,6 +144,11 @@ void MRFI_RxCompleteISR() {
         tx_cmd = ACK_RESET;
         hub |= BROADCAST;
       case NODE_ALIVE:
+        output_txt[2] = '0'+((rx_data/10)%10); // Ten's digit of addr
+        output_txt[4] = '0'+(rx_data%10);      // One's digit of addr
+    
+        TXString(output_txt, sizeof output_txt);
+        node_data[rx_src-1] |= ALIVE;        
         tx_cmd = ACK_ALIVE;
         hub |= BROADCAST;
         break;
