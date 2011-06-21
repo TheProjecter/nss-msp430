@@ -1,26 +1,14 @@
-[Interrupts]
-Enabled=1
-[MemoryMap]
-Enabled=0
-Base=0
-UseAuto=0
-TypeViolation=1
-UnspecRange=1
-ActionState=1
-[TraceHelper]
-Enabled=0
-ShowSource=1
 [State Storage]
-Control Register=35924
+Control Register=35928
 [Sequencer]
-Control Register=35924
-NextState0=34900
-NextState1=68
+Control Register=35928
+NextState0=35928
+NextState1=34904
 [Action Register]
 Break=1
 State Storage=1
 [DebugChecksum]
-Checksum=-998047285
+Checksum=-722237664
 [DisAssemblyWindow]
 NumStates=_ 1
 State 1=_ 0
@@ -40,6 +28,18 @@ UseTrigger=1
 TriggerName=main
 LimitSize=0
 ByteLimit=50
+[Interrupts]
+Enabled=1
+[MemoryMap]
+Enabled=0
+Base=0
+UseAuto=0
+TypeViolation=1
+UnspecRange=1
+ActionState=1
+[TraceHelper]
+Enabled=0
+ShowSource=1
 [Log file]
 LoggingEnabled=_ 0
 LogFile=_ ""

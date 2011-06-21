@@ -52,7 +52,7 @@ void main ( void ) {
   // Initialize device settings
   my_addr = 0;
   pulse = PULSE_RATE;
-  node = LINK_MODE;
+  node = (LINK_MODE+IDLE);
   
   // Turn on both LEDs to signal initialization complete
   P1OUT |= (LED_RED+LED_GREEN);
@@ -123,6 +123,7 @@ void main ( void ) {
       tx_packet.frame[CMD] = tx_cmd;
       tx_packet.frame[DATA] = tx_data;
       MRFI_Transmit(&tx_packet, MRFI_TX_TYPE_FORCED);
+      node &= ~BROADCAST;
     }
     
     // Put radio to sleep
@@ -200,20 +201,20 @@ void MRFI_RxCompleteISR( void ) {
     switch (rx_cmd) {
       case ACK_NODE:
         node |= (PAIRED+IDLE);
-        node &= ~(LINK_MODE+BROADCAST+WAKE_RADIO);
+        node &= ~(LINK_MODE+WAKE_RADIO);
         my_addr = rx_data;
         break;
       case ACK_ALARM:
         node |= IDLE;
-        node &= ~(BROADCAST+WAKE_RADIO);
+        node &= ~WAKE_RADIO;
         break;
       case ACK_RESET:
         node |= IDLE;
-        node &= ~(BROADCAST+WAKE_RADIO);
+        node &= ~WAKE_RADIO;
         break;
       case ACK_ALIVE:
         P1OUT &= ~LED_GREEN;
-        node &= ~(BROADCAST+WAKE_RADIO);
+        node &= ~WAKE_RADIO;
         break;
     }
   }
