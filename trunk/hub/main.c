@@ -3,7 +3,7 @@
 #include "commands.h"
 
 #define MY_ADDR   0
-#define MAX_NODES 10
+static const MAX_NODES 10
 
 uint8_t free_addr;
 uint8_t hub;
