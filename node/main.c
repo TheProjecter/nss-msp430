@@ -104,7 +104,10 @@ void main ( void ) {
       __bis_SR_register(CPUOFF + GIE);
       temp = ADC10MEM;
       tx_data = (temp*25)/512;
-      node &= ~GET_VCC;      
+      node &= ~GET_VCC;
+      
+      ADC10CTL0 &= ~ENC;
+      ADC10CTL0 &= ~(REFON + ADC10ON);     
     }
     
     // Wake radio if needed
