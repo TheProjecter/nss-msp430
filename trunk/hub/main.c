@@ -4,18 +4,18 @@
 
 #define MY_ADDR 0
 #define MAX_NODES 10
-#define WINDOW_MAX 5
-#define WINDOW_CYCLE 10
+#define WINDOW_MAX 10
+#define WINDOW_CYCLE 5
 
-uint8_t free_addr;
-uint8_t hub;
+uint8_t free_addr = 0;
+uint8_t hub = 0;
 uint8_t node_data[MAX_NODES];
 uint8_t node_voltage[MAX_NODES];
 
 void MRFI_GpioIsr( void );
 
 void main( void ) {
-  int time = 0;
+  uint8_t time = 0;
   char update_txt[] = {"\r\n#ID,A,S,V.Vv"};
                       
   // Initialize Board Devices
@@ -54,8 +54,7 @@ void main( void ) {
   free_addr = MAX_NODES;
   
   // Initialize node data
-  int8_t i;  
-  for (i = (MAX_NODES-1); i > 0; i--) {
+  for (int i = (MAX_NODES-1); i >= 0; i--) {
     node_data[i] = 0;
     node_voltage[i] = 0;
   }
@@ -69,19 +68,27 @@ void main( void ) {
     
     // Check if any nodes are alarmed
     hub &= ~ALARMED;
-    for (i = MAX_NODES-1; i >= 0; i--) {
+    for (int i = (MAX_NODES-1); i >= 0; i--) {
       if (node_data[i]&ALARMED) {
         hub |= ALARMED;
       }
     }
+
+    // Set alarm if in alarm mode
+    if (hub&ALARMED) {
+      P1OUT |= LED_RED;  
+    } else {
+      P1OUT &= ~LED_RED;  
+    }   
     
+    // Check if hub is has listening window open or not
     if (hub&IDLE) {
       if (time == WINDOW_CYCLE) {
         time = 0;  // Reset the clock
         hub &= ~IDLE; // Take the hub out of IDLE mode
         P1OUT &= ~LED_GREEN;
         
-        for (i = MAX_NODES-1; i >= 0; i--) { // Reset node data
+        for (int i = (MAX_NODES-1); i >= 0; i--) { // Reset node data
           if (node_data[i]&PAIRED) {
             node_data[i] &= ~ALIVE;
           }
@@ -93,7 +100,7 @@ void main( void ) {
         hub |= IDLE; // Put the hub in IDLE mode
         P1OUT |= LED_GREEN;
       
-        for (i = MAX_NODES-1; i >= 0; i--) {
+        for (int i = (MAX_NODES-1); i >= 0; i--) {
           if (node_data[i]&PAIRED) {
             update_txt[3] = '0'+(((i+1)/10)%10);
             update_txt[4] = '0'+((i+1)%10);
@@ -115,19 +122,12 @@ void main( void ) {
             
             TXString(update_txt, sizeof update_txt);
           }
-         }
-        
+        }        
       } else {
         P1OUT ^= LED_GREEN;
       }
     }
     
-    // Set alarm if in alarm mode
-    if (hub&ALARMED) {
-      P1OUT |= LED_RED;  
-    } else {
-      P1OUT &= ~LED_RED;  
-    }   
     time++;
   }
 }
@@ -174,9 +174,7 @@ void MRFI_RxCompleteISR() {
     switch (rx_cmd) {
       case NEW_NODE:
         if (free_addr > 0) {
-          int8_t curr_addr;
-          
-          for (curr_addr = MAX_NODES-1; curr_addr >= 0; curr_addr--) {
+          for (int curr_addr = (MAX_NODES-1); curr_addr >= 0; curr_addr--) {
             if (!(node_data[curr_addr]&PAIRED)) { // Address is free to use
               free_addr--;
               node_data[curr_addr] |= (PAIRED+ALIVE);
