@@ -25,7 +25,7 @@ void main ( void ) {
   mrfiPacket_t tx_packet;
   uint8_t tx_cmd;
   uint8_t tx_data;
-  int pulse;
+  uint8_t pulse;
 
   // Initialize board devices 
   BSP_Init();
