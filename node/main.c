@@ -1,26 +1,39 @@
-/*******************************************************************************
-
-  MODE_SELECT Properties
-    Bit = 0, Circuit reset with H2L, Alarm set with L2H, Normally Open
-    Bit = 1, Circuit reset with L2H, Alarm set with H2L, Normally Closed
-
-*******************************************************************************/
+/*------------------------------------------------------------------------------
+ * MODE_SELECT Properties
+ *  Bit = 0, Circuit reset with H2L, Alarm set with L2H, Normally Open
+ *  Bit = 1, Circuit reset with L2H, Alarm set with H2L, Normally Closed
+ *----------------------------------------------------------------------------*/
   
 #include "mrfi.h"
 #include "radios/family1/mrfi_spi.h"
 #include "commands.h"
 
+/*------------------------------------------------------------------------------
+ * Defines
+ *----------------------------------------------------------------------------*/
 #define MODE_SELECT 0x08 // P4.3 - Pin 8
 #define TRIGGER_L2H 0x01 // P2.0 - Pin 3
 #define TRIGGER_H2L 0x02 // P2.1 - Pin 4
-
 #define PULSE_RATE 1
 
+/*------------------------------------------------------------------------------
+ * Prototypes
+ *----------------------------------------------------------------------------*/
+void MRFI_GpioIsr( void );
+__interrupt void Timer_A ( void );
+__interrupt void Port1_ISR ( void );
+__interrupt void Port2_ISR ( void );
+__interrupt void ADC10_ISR ( void );
+
+/*------------------------------------------------------------------------------
+ * Globals
+ *----------------------------------------------------------------------------*/
 uint8_t my_addr;
 uint8_t node;
 
-void MRFI_GpioIsr( void );
-
+/*------------------------------------------------------------------------------
+ * Main
+ *----------------------------------------------------------------------------*/
 void main ( void ) { 
   mrfiPacket_t tx_packet;
   uint8_t tx_cmd;
@@ -135,55 +148,9 @@ void main ( void ) {
   }
 }
 
-#pragma vector=TIMERA0_VECTOR
-__interrupt void Timer_A ( void ) {
-  
-  // Wake up CPU after ISR exits
-  __bic_SR_register_on_exit(LPM3_bits);
-}
-
-#pragma vector=PORT1_VECTOR
-__interrupt void Port1_ISR ( void ) {  
-
-}
-
-#pragma vector=PORT2_VECTOR
-__interrupt void Port2_ISR ( void ) {
-  
-  // Required for RF interrupt
-  MRFI_GpioIsr();    
-  
-  // Falling edge trigger
-  if (P2IFG&TRIGGER_H2L) {
-    P2IFG &= ~TRIGGER_H2L;
-    
-    if (P4IN&MODE_SELECT) {
-      node |= ALARMED;
-    } else {
-      node &= ~ALARMED;
-    }    
- 
-    if (!(node&LINK_MODE)) {
-      node &= ~IDLE;
-    }
-  }  
-  
-  // Rising edge trigger
-  if (P2IFG&TRIGGER_L2H) {
-    P2IFG &= ~TRIGGER_L2H;
-    
-    if (P4IN&MODE_SELECT) {
-      node &= ~ALARMED;
-    } else {
-      node |= ALARMED;
-    }    
-
-    if (!(node&LINK_MODE)) {
-      node &= ~IDLE;
-    }
-  }    
-}
-
+/*------------------------------------------------------------------------------
+ * MRFI Rx interrupt service routine
+ *----------------------------------------------------------------------------*/
 void MRFI_RxCompleteISR( void ) {
   mrfiPacket_t rx_packet;
   uint8_t rx_dst;
@@ -222,8 +189,68 @@ void MRFI_RxCompleteISR( void ) {
   }
 }
 
+/*------------------------------------------------------------------------------
+ * Timer A0 interrupt service routine
+ *----------------------------------------------------------------------------*/
+#pragma vector=TIMERA0_VECTOR
+__interrupt void Timer_A ( void ) {
+  
+  // Wake up CPU after ISR exits
+  __bic_SR_register_on_exit(LPM3_bits);
+}
+
+/*------------------------------------------------------------------------------
+ * PORT1 interrupt service routine
+ *----------------------------------------------------------------------------*/
+#pragma vector=PORT1_VECTOR
+__interrupt void Port1_ISR ( void ) {  
+
+}
+
+/*------------------------------------------------------------------------------
+ * PORT2 interrupt service routine
+ *----------------------------------------------------------------------------*/
+#pragma vector=PORT2_VECTOR
+__interrupt void Port2_ISR ( void ) {
+  
+  // Required for RF interrupt
+  MRFI_GpioIsr();    
+  
+  // Falling edge trigger
+  if (P2IFG&TRIGGER_H2L) {
+    P2IFG &= ~TRIGGER_H2L;
+    
+    if (P4IN&MODE_SELECT) {
+      node |= ALARMED;
+    } else {
+      node &= ~ALARMED;
+    }    
+ 
+    if (!(node&LINK_MODE)) {
+      node &= ~IDLE;
+    }
+  }  
+  
+  // Rising edge trigger
+  if (P2IFG&TRIGGER_L2H) {
+    P2IFG &= ~TRIGGER_L2H;
+    
+    if (P4IN&MODE_SELECT) {
+      node &= ~ALARMED;
+    } else {
+      node |= ALARMED;
+    }    
+
+    if (!(node&LINK_MODE)) {
+      node &= ~IDLE;
+    }
+  }    
+}
+
+/*------------------------------------------------------------------------------
+ * ADC10 interrupt service routine
+ *----------------------------------------------------------------------------*/
 #pragma vector=ADC10_VECTOR
-__interrupt void ADC10_ISR(void)
-{
+__interrupt void ADC10_ISR(void) {
   __bic_SR_register_on_exit(CPUOFF);
 }
