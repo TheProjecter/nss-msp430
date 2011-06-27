@@ -5,9 +5,9 @@
 #define MY_ADDR 0
 #define MAX_NODES 10
 #define WINDOW_MAX 10
-#define WINDOW_CYCLE 5
+#define IDLE_MAX 5
 
-uint8_t free_addr = 0;
+uint8_t free_addr = MAX_NODES;
 uint8_t hub = 0;
 uint8_t node_data[MAX_NODES];
 uint8_t node_voltage[MAX_NODES];
@@ -15,7 +15,7 @@ uint8_t node_voltage[MAX_NODES];
 void MRFI_GpioIsr( void );
 
 void main( void ) {
-  uint8_t time = 0;
+  uint8_t time = IDLE_MAX;
   char update_txt[] = {"\r\n#ID,A,S,V.Vv"};
                       
   // Initialize Board Devices
@@ -51,7 +51,6 @@ void main( void ) {
   // Initialize hub settings
   hub |= IDLE;
   hub &= ~(BROADCAST+ALARMED);
-  free_addr = MAX_NODES;
   
   // Initialize node data
   for (int i = (MAX_NODES-1); i >= 0; i--) {
@@ -81,23 +80,33 @@ void main( void ) {
       P1OUT &= ~LED_RED;  
     }   
     
-    // Check if hub is has listening window open or not
+    // Check if hub is in listening window or not
     if (hub&IDLE) {
-      if (time == WINDOW_CYCLE) {
-        time = 0;  // Reset the clock
-        hub &= ~IDLE; // Take the hub out of IDLE mode
+      if (time == 0) {
+        /* -Window cycle setup-
+          Once time counts to zero, set time max to window cycle max.
+        Take hub out of IDLE mode. Iterate through each node and reset 
+        their ALIVE flag.
+        */
+        time = WINDOW_MAX;
+        hub &= ~IDLE;
         P1OUT &= ~LED_GREEN;
         
-        for (int i = (MAX_NODES-1); i >= 0; i--) { // Reset node data
+        for (int i = (MAX_NODES-1); i >= 0; i--) {
           if (node_data[i]&PAIRED) {
             node_data[i] &= ~ALIVE;
           }
         }
       }
-    } else {
-      if (time == WINDOW_MAX) {
-        time = 0; // Reset the clock
-        hub |= IDLE; // Put the hub in IDLE mode
+    } else { // Hub not IDLE
+      if (time == 0) {
+        /* -Idle cycle setup-
+          Once time counts to zero, set time max to idle cycle max.
+        Put hub in IDLE mode. Iterate through each node and send their
+        status to the UART.
+        */
+        time = IDLE_MAX;
+        hub |= IDLE;
         P1OUT |= LED_GREEN;
       
         for (int i = (MAX_NODES-1); i >= 0; i--) {
@@ -128,7 +137,8 @@ void main( void ) {
       }
     }
     
-    time++;
+    // Decrease time counter
+    time--;
   }
 }
 
@@ -158,7 +168,10 @@ void MRFI_RxCompleteISR() {
   uint8_t rx_cmd;
   uint8_t rx_data;
   uint8_t tx_cmd;
-  uint8_t tx_data;  
+  uint8_t tx_data;
+  char instant_txt[] = {"\r\n$ID,A"};
+  uint8_t tx_uart = 0;
+  uint8_t uart_cmd;
   
   // Grab packet from buffer
   MRFI_Receive(&rx_packet);
@@ -190,11 +203,16 @@ void MRFI_RxCompleteISR() {
         node_data[rx_src-1] |= ALARMED;
         tx_cmd = ACK_ALARM;
         hub |= BROADCAST;
+        tx_uart = 1;
+        uart_cmd = 1;
         break;
       case RESET_NODE:
         node_data[rx_src-1] &= ~ALARMED;
         tx_cmd = ACK_RESET;
         hub |= BROADCAST;
+        tx_uart = 1;
+        uart_cmd = 0;
+        break;
       case NODE_ALIVE:
         node_data[rx_src-1] |= ALIVE;
         node_voltage[rx_src-1] = rx_data;
@@ -206,6 +224,14 @@ void MRFI_RxCompleteISR() {
     hub &= ~BROADCAST;
   }
   
+  if (tx_uart) {
+    instant_txt[3] = '0'+((rx_src/10)%10);
+    instant_txt[4] = '0'+(rx_src%10);
+    instant_txt[6] = '0'+(uart_cmd);
+    
+    TXString(instant_txt, sizeof instant_txt);    
+  }
+    
   // Send any pending messages
   if (hub&BROADCAST) {
     mrfiPacket_t tx_packet;

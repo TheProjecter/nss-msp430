@@ -23,7 +23,7 @@
 #define LED_GREEN   0x02
 #define PUSH_BUTTON 0x04
 
-/* Node registers */
+/* Device registers */
 #define PAIRED     0x01
 #define ALARMED    0x02
 #define BROADCAST  0x04
