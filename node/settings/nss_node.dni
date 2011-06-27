@@ -1,14 +1,14 @@
 [State Storage]
-Control Register=35928
+Control Register=35940
 [Sequencer]
-Control Register=35928
-NextState0=35928
-NextState1=34904
+Control Register=35940
+NextState0=35876
+NextState1=35876
 [Action Register]
 Break=1
 State Storage=1
 [DebugChecksum]
-Checksum=-722237664
+Checksum=-277643807
 [DisAssemblyWindow]
 NumStates=_ 1
 State 1=_ 0
@@ -48,8 +48,7 @@ Category=_ 0
 LoggingEnabled=_ 0
 LogFile=_ ""
 [Breakpoints]
-Bp0=_ "STD_CODE" "{$PROJ_DIR$\..\hub\main.c}.102.7@1" 0 0 0 0 "" 0 ""
-Count=1
+Count=0
 [FET]
 Clock mode=38
 Extended Clock mode=-1
