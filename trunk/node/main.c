@@ -30,7 +30,6 @@ void main ( void ) {
   // Initialize board devices 
   BSP_Init();
   MRFI_Init();
-  mrfiSpiWriteReg(0x3E, 0xFF); // Increase Tx power
 
   // Setup I/O
   P1DIR |= (LED_RED+LED_GREEN);        // Enable LEDs  
@@ -67,22 +66,22 @@ void main ( void ) {
       node |= (WAKE_RADIO+BROADCAST);
       
     } else {
-      if (!(node&IDLE)) {
+      if (node&IDLE) {
+        if (pulse == 0) {
+          P1OUT |= LED_GREEN;
+          pulse = PULSE_RATE;
+          tx_cmd = NODE_ALIVE;
+          node |= (GET_VCC+WAKE_RADIO+BROADCAST);
+        } else {
+          pulse--;
+        }
+      } else {
         if (node&ALARMED) {
           tx_cmd = ALARMED_NODE;    
         } else {
           tx_cmd = RESET_NODE;
         }
         node |= (WAKE_RADIO+BROADCAST);
-      } else {
-        if (pulse == 0) {
-          P1OUT |= LED_GREEN;
-          node |= (GET_VCC+WAKE_RADIO+BROADCAST);
-          pulse = PULSE_RATE;
-          tx_cmd = NODE_ALIVE;
-        } else {
-          pulse--;
-        }
       }
       
       // Display state of node

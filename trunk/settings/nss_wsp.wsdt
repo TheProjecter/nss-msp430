@@ -5,7 +5,7 @@
     
     
     
-  <CurrentConfigs><Project>nss_hub/Debug</Project><Project>nss_repeater/Debug</Project><Project>nss_node/Debug</Project></CurrentConfigs><CurrentProj>nss_hub</CurrentProj><OverviewSelected>1</OverviewSelected></ConfigDictionary>
+  <CurrentConfigs><Project>nss_repeater/Debug</Project><Project>nss_node/Debug</Project><Project>nss_hub/Debug</Project></CurrentConfigs><CurrentProj>nss_hub</CurrentProj><OverviewSelected>1</OverviewSelected></ConfigDictionary>
   <Desktop>
     <Static>
       <Workspace>
@@ -27,7 +27,7 @@
     <Windows>
       
       
-    <Wnd0>
+    <Wnd1>
         <Tabs>
           <Tab>
             <Identity>TabID-14402-5819</Identity>
@@ -39,25 +39,25 @@
           </Tab>
         </Tabs>
         
-      <SelectedTab>0</SelectedTab></Wnd0><Wnd2>
+      <SelectedTab>0</SelectedTab></Wnd1><Wnd3>
         <Tabs>
           
         <Tab><Identity>TabID-18105-10017</Identity><TabName>Find in Files</TabName><Factory>Find-in-Files</Factory><Session/></Tab><Tab><Identity>TabID-8847-2780</Identity><TabName>Build</TabName><Factory>Build</Factory><Session/></Tab></Tabs>
         
-      <SelectedTab>1</SelectedTab></Wnd2></Windows>
+      <SelectedTab>1</SelectedTab></Wnd3></Windows>
     <Editor>
       
       
       
       
-    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\hub\main.c</Filename><XPos>0</XPos><YPos>210</YPos><SelStart>5408</SelStart><SelEnd>5408</SelEnd></Tab><ActiveTab>0</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\drivers\nss\commands.h</Filename><XPos>0</XPos><YPos>9</YPos><SelStart>515</SelStart><SelEnd>515</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
+    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\node\main.c</Filename><XPos>0</XPos><YPos>94</YPos><SelStart>2777</SelStart><SelEnd>2777</SelEnd></Tab><ActiveTab>0</ActiveTab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
     <Positions>
       
       
       
       
       
-    <Top><Row0><Sizes><Toolbar-01960190><key>iaridepm.enu1</key></Toolbar-01960190></Sizes></Row0><Row1><Sizes/></Row1><Row2><Sizes/></Row2><Row3><Sizes/></Row3><Row4><Sizes/></Row4><Row5><Sizes/></Row5><Row6><Sizes/></Row6></Top><Left><Row0><Sizes><Wnd0><Rect><Top>-2</Top><Left>-2</Left><Bottom>509</Bottom><Right>244</Right><x>-2</x><y>-2</y><xscreen>244</xscreen><yscreen>306</yscreen><sizeHorzCX>190625</sizeHorzCX><sizeHorzCY>419178</sizeHorzCY><sizeVertCX>192188</sizeVertCX><sizeVertCY>700000</sizeVertCY></Rect></Wnd0></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes><Wnd2><Rect><Top>-2</Top><Left>-2</Left><Bottom>176</Bottom><Right>1282</Right><x>-2</x><y>-2</y><xscreen>1284</xscreen><yscreen>178</yscreen><sizeHorzCX>1003125</sizeHorzCX><sizeHorzCY>243836</sizeHorzCY><sizeVertCX>190625</sizeVertCX><sizeVertCY>419178</sizeVertCY></Rect></Wnd2></Sizes></Row0></Bottom><Float><Sizes/></Float></Positions>
+    <Top><Row0><Sizes><Toolbar-00d60190><key>iaridepm.enu1</key></Toolbar-00d60190></Sizes></Row0><Row1><Sizes/></Row1><Row2><Sizes/></Row2><Row3><Sizes/></Row3><Row4><Sizes/></Row4></Top><Left><Row0><Sizes><Wnd1><Rect><Top>-2</Top><Left>-2</Left><Bottom>509</Bottom><Right>244</Right><x>-2</x><y>-2</y><xscreen>244</xscreen><yscreen>306</yscreen><sizeHorzCX>190625</sizeHorzCX><sizeHorzCY>419178</sizeHorzCY><sizeVertCX>192188</sizeVertCX><sizeVertCY>700000</sizeVertCY></Rect></Wnd1></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes><Wnd3><Rect><Top>-2</Top><Left>-2</Left><Bottom>176</Bottom><Right>1282</Right><x>-2</x><y>-2</y><xscreen>1284</xscreen><yscreen>178</yscreen><sizeHorzCX>1003125</sizeHorzCX><sizeHorzCY>243836</sizeHorzCY><sizeVertCX>190625</sizeVertCX><sizeVertCY>419178</sizeVertCY></Rect></Wnd3></Sizes></Row0></Bottom><Float><Sizes/></Float></Positions>
   </Desktop>
 </Workspace>
 

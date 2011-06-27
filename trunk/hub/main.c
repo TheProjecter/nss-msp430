@@ -32,7 +32,6 @@ void main( void ) {
 
   // Initialize Radio
   MRFI_Init();
-  mrfiSpiWriteReg(0x3E, 0xFF); // Increase Tx power
   MRFI_WakeUp();
   MRFI_RxOn();
   
