@@ -22,13 +22,3 @@
 #define LED_RED     0x01
 #define LED_GREEN   0x02
 #define PUSH_BUTTON 0x04
-
-/* Device registers */
-#define PAIRED     0x01
-#define ALARMED    0x02
-#define BROADCAST  0x04
-#define LINK_MODE  0x08
-#define GET_VCC    0x10
-#define ALIVE      0x20
-#define WAKE_RADIO 0x40
-#define IDLE       0x80
