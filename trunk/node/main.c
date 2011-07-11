@@ -14,7 +14,14 @@
 #define MODE_SELECT 0x08 // P4.3 - Pin 8
 #define TRIGGER_L2H 0x01 // P2.0 - Pin 3
 #define TRIGGER_H2L 0x02 // P2.1 - Pin 4
-#define PULSE_RATE 1
+
+#define LINK_MODE     0x01
+#define WAKE_RADIO    0x02
+#define BROADCAST     0x04
+#define PAIRED        0x08
+#define ALARMED       0x10
+#define STATE_CHANGED 0x20
+#define PACKET_RX     0x40
 
 /*------------------------------------------------------------------------------
  * Prototypes
@@ -28,23 +35,21 @@ __interrupt void ADC10_ISR ( void );
 /*------------------------------------------------------------------------------
  * Globals
  *----------------------------------------------------------------------------*/
-uint8_t my_addr;
-uint8_t node;
+static volatile uint8_t NODE1 = 0; // Status register for device
 
 /*------------------------------------------------------------------------------
  * Main
  *----------------------------------------------------------------------------*/
-void main ( void ) { 
-  mrfiPacket_t tx_packet;
+void main ( void ) {
+  static const uint8_t my_addr = 0x01;
   uint8_t tx_cmd;
   uint8_t tx_data;
-  uint8_t pulse;
 
-  // Initialize board devices 
+  /* Initialize board devices */
   BSP_Init();
   MRFI_Init();
 
-  // Setup I/O
+  /* Setup I/O */
   P1DIR |= (LED_RED+LED_GREEN);        // Enable LEDs  
   P1DIR &= ~PUSH_BUTTON;               // Enable push button  
   P1REN |= PUSH_BUTTON;                // Enable pull-up/down resistor
@@ -55,94 +60,91 @@ void main ( void ) {
   P2IES &= ~TRIGGER_L2H;               // Set rising edge select
   P2IES |= TRIGGER_H2L;                // Set falling edge select
 
-  // Setup Timer A
-  BCSCTL3 |= LFXT1S_2;
-  TACCTL0 = CCIE;
-  TACCR0 = 12000;
-  TACTL = MC_1+TASSEL_1;  
+  /* Setup Timer A */
+  BCSCTL3 |= LFXT1S_2;   // Source VLO @ 12kHz
+  TACCTL0 = CCIE;        // Enable TimerA interrupt
+  TACCR0 = 12000;        // ~1Hz
+  TACTL = MC_1+TASSEL_1; // Count up + ACLK
   
-  // Initialize device settings
-  my_addr = 0;
-  pulse = PULSE_RATE;
-  node = (LINK_MODE+IDLE);
-  
-  // Turn on both LEDs to signal initialization complete
+  /* Initialize device settings */
+  NODE1 |= LINK_MODE;
+
+  /* Signal boot complete */  
   P1OUT |= (LED_RED+LED_GREEN);
   
-  // Enter main loop
+  /* Enter main loop */
   while(1) {    
     __bis_SR_register(GIE+LPM3_bits);
     
-    if (node&LINK_MODE) {      
+    if (NODE1&PACKET_RX) {
+      mrfiPacket_t rx_packet;
+      uint8_t rx_dst;
+      uint8_t rx_cmd;
+      uint8_t rx_data;
+  
+      /* Grab packet from buffer */
+      MRFI_Receive(&rx_packet);
+    
+      /* Gather packet data */
+      rx_dst = rx_packet.frame[DST_ADDR];
+      rx_cmd = rx_packet.frame[CMD];
+      rx_data = rx_packet.frame[DATA];
+    
+      /* Perform address filtering */
+      if ((rx_dst == my_addr) || (!(NODE1&PAIRED))) {
+        switch (rx_cmd) {
+          case ACK_NODE:
+            NODE1 |= PAIRED;
+            NODE1 &= ~(LINK_MODE+WAKE_RADIO);
+            break;
+          case ACK_ALARM:
+            NODE1 &= ~(WAKE_RADIO+STATE_CHANGED);
+            break;
+          case ACK_RESET:
+            NODE1 &= ~(WAKE_RADIO+STATE_CHANGED);
+            break;
+          case ACK_ALIVE:
+            break;
+        }
+      }      
+    }
+    
+    if (NODE1&LINK_MODE) {      
       P1OUT ^= (LED_RED+LED_GREEN);
       tx_cmd = NEW_NODE;
-      node |= (WAKE_RADIO+BROADCAST);
-      
+      NODE1 |= (WAKE_RADIO+BROADCAST);      
     } else {
-      if (node&IDLE) {
-        if (pulse == 0) {
-          P1OUT |= LED_GREEN;
-          pulse = PULSE_RATE;
-          tx_cmd = NODE_ALIVE;
-          node |= (GET_VCC+WAKE_RADIO+BROADCAST);
+      if (NODE1&STATE_CHANGED) { // Alarm was set/reset
+        if (NODE1&ALARMED) {
+          P1OUT |= LED_RED;
+          tx_cmd = ALARMED_NODE;
         } else {
-          pulse--;
-        }
-      } else {
-        if (node&ALARMED) {
-          tx_cmd = ALARMED_NODE;    
-        } else {
+          P1OUT &= ~LED_RED;
           tx_cmd = RESET_NODE;
         }
-        node |= (WAKE_RADIO+BROADCAST);
-      }
-      
-      // Display state of node
-      if (node&ALARMED) {
-        P1OUT ^= LED_RED;
-      } else {
-        P1OUT &= ~LED_RED;
+        NODE1 |= (WAKE_RADIO+BROADCAST);
       }
     }
     
-    if (node&GET_VCC) {      
-      // Measure Vcc voltage
-      volatile long temp;
-      
-      ADC10CTL1 = INCH_11; 
-      ADC10CTL0 = SREF_1 + ADC10SHT_2 + REFON + ADC10ON + ADC10IE + REF2_5V;
-      __delay_cycles(240);
-      ADC10CTL0 |= ENC + ADC10SC;
-      __bis_SR_register(CPUOFF + GIE);
-      temp = ADC10MEM;
-      tx_data = (temp*25)/512;
-      node &= ~GET_VCC;
-      
-      ADC10CTL0 &= ~ENC;
-      ADC10CTL0 &= ~(REFON + ADC10ON);     
-    }
-    
-    // Wake radio if needed
-    if (node&WAKE_RADIO) {
+    if (NODE1&WAKE_RADIO) {
       MRFI_WakeUp();
       MRFI_RxOn();
     }
 
-    // Send any pending messages
-    if (node&BROADCAST) {
-  
-      // Setup packet info
+    if (NODE1&BROADCAST) {  
+      mrfiPacket_t tx_packet;
+      
       tx_packet.frame[0] = 8+20;
       tx_packet.frame[SRC_ADDR] = my_addr;
-      tx_packet.frame[DST_ADDR] = 0;  
+      tx_packet.frame[DST_ADDR] = 0x00;  
       tx_packet.frame[CMD] = tx_cmd;
       tx_packet.frame[DATA] = tx_data;
       MRFI_Transmit(&tx_packet, MRFI_TX_TYPE_FORCED);
-      node &= ~BROADCAST;
+      
+      NODE1 &= ~BROADCAST;
     }
     
-    // Put radio to sleep
-    if (!(node&WAKE_RADIO)) {
+    if (!(NODE1&WAKE_RADIO)) {
       MRFI_Sleep();
     }  
   }
@@ -152,41 +154,7 @@ void main ( void ) {
  * MRFI Rx interrupt service routine
  *----------------------------------------------------------------------------*/
 void MRFI_RxCompleteISR( void ) {
-  mrfiPacket_t rx_packet;
-  uint8_t rx_dst;
-  uint8_t rx_cmd;
-  uint8_t rx_data;
-  
-  // Grab packet from buffer
-  MRFI_Receive(&rx_packet);
-
-  // Gather packet data
-  rx_dst = rx_packet.frame[DST_ADDR];
-  rx_cmd = rx_packet.frame[CMD];
-  rx_data = rx_packet.frame[DATA];
-  
-  // Perform address filtering  
-  if ((rx_dst == my_addr) || (!(node&PAIRED))) {
-    switch (rx_cmd) {
-      case ACK_NODE:
-        node |= (PAIRED+IDLE);
-        node &= ~(LINK_MODE+WAKE_RADIO);
-        my_addr = rx_data;
-        break;
-      case ACK_ALARM:
-        node |= IDLE;
-        node &= ~WAKE_RADIO;
-        break;
-      case ACK_RESET:
-        node |= IDLE;
-        node &= ~WAKE_RADIO;
-        break;
-      case ACK_ALIVE:
-        P1OUT &= ~LED_GREEN;
-        node &= ~WAKE_RADIO;
-        break;
-    }
-  }
+  NODE1 |= PACKET_RX;
 }
 
 /*------------------------------------------------------------------------------
@@ -195,7 +163,7 @@ void MRFI_RxCompleteISR( void ) {
 #pragma vector=TIMERA0_VECTOR
 __interrupt void Timer_A ( void ) {
   
-  // Wake up CPU after ISR exits
+  /* Wake up CPU after ISR exits */
   __bic_SR_register_on_exit(LPM3_bits);
 }
 
@@ -213,38 +181,35 @@ __interrupt void Port1_ISR ( void ) {
 #pragma vector=PORT2_VECTOR
 __interrupt void Port2_ISR ( void ) {
   
-  // Required for RF interrupt
+  /* Required for RF interrupt */
   MRFI_GpioIsr();    
   
-  // Falling edge trigger
-  if (P2IFG&TRIGGER_H2L) {
-    P2IFG &= ~TRIGGER_H2L;
+  if (!(NODE1&LINK_MODE)) {
     
-    if (P4IN&MODE_SELECT) {
-      node |= ALARMED;
-    } else {
-      node &= ~ALARMED;
-    }    
- 
-    if (!(node&LINK_MODE)) {
-      node &= ~IDLE;
-    }
-  }  
+    /* Falling edge trigger */
+    if (P2IFG&TRIGGER_H2L) {
+      P2IFG &= ~TRIGGER_H2L;
+      
+      if (P4IN&MODE_SELECT) {
+        NODE1 |= ALARMED;
+      } else {
+        NODE1 &= ~ALARMED;
+      }     
+    }  
   
-  // Rising edge trigger
-  if (P2IFG&TRIGGER_L2H) {
-    P2IFG &= ~TRIGGER_L2H;
-    
-    if (P4IN&MODE_SELECT) {
-      node &= ~ALARMED;
-    } else {
-      node |= ALARMED;
-    }    
-
-    if (!(node&LINK_MODE)) {
-      node &= ~IDLE;
+    /* Rising edge trigger */
+    if (P2IFG&TRIGGER_L2H) {
+      P2IFG &= ~TRIGGER_L2H;
+      
+      if (P4IN&MODE_SELECT) {
+        NODE1 &= ~ALARMED;
+      } else {
+        NODE1 |= ALARMED;
+      }    
     }
-  }    
+    
+    NODE1 |= STATE_CHANGED;
+  }
 }
 
 /*------------------------------------------------------------------------------
