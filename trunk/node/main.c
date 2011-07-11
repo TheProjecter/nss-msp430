@@ -84,6 +84,7 @@ void main ( void ) {
   
       /* Grab packet from buffer */
       MRFI_Receive(&rx_packet);
+      NODE1 &= ~PACKET_RX;
     
       /* Gather packet data */
       rx_dst = rx_packet.frame[DST_ADDR];
