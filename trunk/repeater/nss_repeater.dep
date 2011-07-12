@@ -6,36 +6,37 @@
   <configuration>
     <name>Debug</name>
     <outputs>
-      <file>$PROJ_DIR$\main.c</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\bsp_buttons.h</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\bsp.c</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\bsp_macros.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\bsp_leds.h</file>
       <file>$TOOLKIT_DIR$\inc\dlib\c\ysizet.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\mcus\bsp_msp430_defs.h</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\bsp.h</file>
-      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi.c</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\bsp_macros.h</file>
       <file>$PROJ_DIR$\..\drivers\mrfi\mrfi.h</file>
-      <file>$TOOLKIT_DIR$\config\lnk430F2274.xcl</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_board_defs.h</file>
-      <file>$PROJ_DIR$\Debug\Obj\mrfi.r43</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Threads.h</file>
+      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi.c</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\bsp.c</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\bsp.h</file>
+      <file>$PROJ_DIR$\main.c</file>
+      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi_defs.h</file>
       <file>$PROJ_DIR$\Debug\Exe\nss_repeater.d43</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Threads.h</file>
+      <file>$TOOLKIT_DIR$\config\lnk430F2274.xcl</file>
+      <file>$PROJ_DIR$\Debug\Obj\mrfi.r43</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_board_defs.h</file>
+      <file>$PROJ_DIR$\..\drivers\mrfi\radios\common\mrfi_f1f2.c</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Defaults.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_button_defs.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_generic_leds.h</file>
-      <file>$PROJ_DIR$\..\drivers\mrfi\radios\common\mrfi_f1f2.c</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_generic_buttons.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Defaults.h</file>
       <file>$PROJ_DIR$\Debug\Obj\bsp.pbi</file>
-      <file>$PROJ_DIR$\..\drivers\mrfi\smartrf\CC2500\smartrf_CC2500.h</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_generic_buttons.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_leds.c</file>
       <file>$PROJ_DIR$\..\drivers\mrfi\radios\common\mrfi_f1f2.h</file>
+      <file>$PROJ_DIR$\..\drivers\mrfi\smartrf\CC2500\smartrf_CC2500.h</file>
       <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.r43</file>
       <file>$TOOLKIT_DIR$\inc\in430.h</file>
       <file>$TOOLKIT_DIR$\inc\dlib\c\yvals.h</file>
-      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_driver_defs.h</file>
       <file>$PROJ_DIR$\Debug\Obj\main.r43</file>
       <file>$PROJ_DIR$\..\drivers\mrfi\radios\family1\mrfi_spi.c</file>
+      <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_driver_defs.h</file>
       <file>$PROJ_DIR$\Debug\Obj\mrfi.pbi</file>
       <file>$PROJ_DIR$\..\drivers\bsp\boards\EZ430RF\bsp_led_defs.h</file>
       <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.h</file>
@@ -56,16 +57,53 @@
       <file>$TOOLKIT_DIR$\inc\dlib\c\ycheck.h</file>
       <file>$PROJ_DIR$\..\drivers\bsp\drivers\code\bsp_buttons.c</file>
       <file>$PROJ_DIR$\..\drivers\mrfi\radios\family1\mrfi_spi.h</file>
-      <file>$PROJ_DIR$\..\drivers\mrfi\mrfi_defs.h</file>
     </outputs>
     <file>
       <name>[ROOT_NODE]</name>
       <outputs>
         <tool>
           <name>XLINK</name>
-          <file> 14</file>
+          <file> 11</file>
         </tool>
       </outputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\drivers\mrfi\mrfi.c</name>
+      <outputs>
+        <tool>
+          <name>ICC430</name>
+          <file> 14</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 31</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC430</name>
+          <file> 10 8 15 4 42 40 26 34 39 1 2 32 19 43 46 48 27 17 33 36 47 12 3 5 45 50 23 24 29 16 44</file>
+        </tool>
+      </inputs>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\drivers\bsp\bsp.c</name>
+      <outputs>
+        <tool>
+          <name>ICC430</name>
+          <file> 37</file>
+        </tool>
+        <tool>
+          <name>BICOMP</name>
+          <file> 20</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>ICC430</name>
+          <file> 8 15 4 42 40 26 34 39 1 30 41 35 2 32 19 0 18 21 22 49</file>
+        </tool>
+      </inputs>
     </file>
     <file>
       <name>$PROJ_DIR$\main.c</name>
@@ -76,51 +114,13 @@
         </tool>
         <tool>
           <name>BICOMP</name>
-          <file> 37</file>
+          <file> 38</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
           <name>ICC430</name>
-          <file> 9 6 11 5 41 39 25 33 38 8 50 3 31 16 49</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\drivers\bsp\bsp.c</name>
-      <outputs>
-        <tool>
-          <name>ICC430</name>
-          <file> 36</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 20</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC430</name>
-          <file> 6 11 5 41 39 25 33 38 8 27 40 34 3 31 16 1 15 18 22 48</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\drivers\mrfi\mrfi.c</name>
-      <outputs>
-        <tool>
-          <name>ICC430</name>
-          <file> 12</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 30</file>
-        </tool>
-      </outputs>
-      <inputs>
-        <tool>
-          <name>ICC430</name>
-          <file> 50 6 11 5 41 39 25 33 38 8 3 31 16 42 45 47 26 19 32 35 46 13 4 9 44 49 23 21 29 17 43</file>
+          <file> 5 8 15 4 42 40 26 34 39 1 10 2 32 19 50</file>
         </tool>
       </inputs>
     </file>
@@ -129,7 +129,7 @@
       <inputs>
         <tool>
           <name>XLINK</name>
-          <file> 10 36 28 12 24</file>
+          <file> 13 37 28 14 25</file>
         </tool>
       </inputs>
     </file>
