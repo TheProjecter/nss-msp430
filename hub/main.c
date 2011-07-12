@@ -12,13 +12,13 @@
 #define BROADCAST   0x02
 #define ALARMED     0x04
 #define SEND_STATUS 0x08
-#define PACKET_RX   0x10
-#define ALIVE       0x20
+#define ALIVE       0x10
 
 /*------------------------------------------------------------------------------
  * Prototypes
  *----------------------------------------------------------------------------*/
 void MRFI_GpioIsr( void );
+void ProcessPacket(mrfiPacket_t inc_packet);
 __interrupt void Timer_A ( void );
 __interrupt void Port1_ISR ( void );
 __interrupt void Port2_ISR ( void );
@@ -26,24 +26,17 @@ __interrupt void Port2_ISR ( void );
 /*------------------------------------------------------------------------------
  * Globals
  *----------------------------------------------------------------------------*/
-volatile uint8_t HUB1; // Status register for device
+static const uint8_t my_addr = 0x00;
+volatile uint8_t NODE_DATA1[MAX_NODES]; // Register for node MAC addresses
+volatile uint8_t NODE_DATA2[MAX_NODES]; // Register for node status
+volatile uint8_t NODE_DATA3[MAX_NODES]; // Register for node voltages
+volatile uint8_t HUB1;                  // Status register for device
 volatile uint8_t WindowCounter = WINDOW_LENGTH;
 
 /*------------------------------------------------------------------------------
  * Main
  *----------------------------------------------------------------------------*/
-void main( void ) {
-  static const uint8_t my_addr = 0x00;
-  uint8_t NODE_DATA1[MAX_NODES]; // Register for node MAC addresses
-  uint8_t NODE_DATA2[MAX_NODES]; // Register for node status
-  uint8_t NODE_DATA3[MAX_NODES]; // Register for node voltages
-  uint8_t tx_cmd;
-  uint8_t tx_data;
-  uint8_t rx_src;      
-  uint8_t rx_dst;
-  uint8_t rx_cmd;
-  uint8_t rx_data;
-  
+void main( void ) {  
   char update_txt[] = {"\r\n#ID,A,S,V.Vv"};
                       
   /* Initialize Board Devices */
@@ -70,10 +63,10 @@ void main( void ) {
   P1IE |= PUSH_BUTTON;
   
   /* Setup Timer A */
-  BCSCTL3 |= LFXT1S_2;
-  TACCTL0 = CCIE;
-  TACCR0 = 12000;
-  TACTL = MC_1+TASSEL_1; 
+  BCSCTL3 |= LFXT1S_2;   // Source VLO @ 12kHz
+  TACCTL0 = CCIE;        // Enable TimerA interrupt
+  TACCR0 = 12000;        // ~1Hz
+  TACTL = MC_1+TASSEL_1; // Count up + ACLK
   
   /* Initialize hub settings */
   HUB1 = 0;
@@ -91,45 +84,6 @@ void main( void ) {
   
   /* Enter main loop */
   while(1) {
-    
-    /* Check if a packet has been received */
-    if (HUB1&PACKET_RX) {
-      mrfiPacket_t rx_packet;
-
-      /* Grab packet from buffer */
-      MRFI_Receive(&rx_packet);
-      HUB1 &= ~PACKET_RX;
-    
-      /* Gather packet data */
-      rx_src = rx_packet.frame[SRC_ADDR];
-      rx_dst = rx_packet.frame[DST_ADDR];
-      rx_cmd = rx_packet.frame[CMD];
-      rx_data = rx_packet.frame[DATA];
-      
-      /* Perform address filtering */
-      if (rx_dst == my_addr) {
-        switch (rx_cmd) {
-          case NEW_NODE:
-            for (int i = (MAX_NODES-1); i >= 0; i--) {
-              if (NODE_DATA1[i] == 0) {
-                NODE_DATA1[i] = rx_src;
-                NODE_DATA2[i] = ALIVE;
-                NODE_DATA3[i] = 36; // Start with highest possible voltage
-                tx_cmd = ACK_NODE;
-                HUB1 |= BROADCAST;
-                break;
-              }
-            }
-            break;
-          case ALARMED_NODE:
-            break;
-          case RESET_NODE:
-            break;
-          case NODE_ALIVE:
-            break;
-        }
-      }
-    }
     
     /* Check if any nodes are alarmed */
     HUB1 &= ~ALARMED;
@@ -171,26 +125,94 @@ void main( void ) {
           TXString(update_txt, sizeof update_txt);
           
           NODE_DATA2[i] &= ~ALIVE;
+          NODE_DATA3[i] = 0;
         }
       }
       
       HUB1 &= ~SEND_STATUS;
       TACCTL0 |= CCIE;      
-    }
-    
-    /* Send data over RF */
-    if (HUB1&BROADCAST) {
-      mrfiPacket_t tx_packet;
+    }    
+  }
+}
+
+/*------------------------------------------------------------------------------
+ * MRFI Rx interrupt service routine
+ *----------------------------------------------------------------------------*/
+void MRFI_RxCompleteISR() {
+  mrfiPacket_t rx_packet;
+
+  /* Grab packet from buffer */
+  MRFI_Receive(&rx_packet);
+  
+  /* Send packet off to be processed in another thread */
+  ProcessPacket(rx_packet);
+}
+
+/*------------------------------------------------------------------------------
+ * ProcessPacket method
+ *----------------------------------------------------------------------------*/
+void ProcessPacket(mrfiPacket_t inc_packet) {
+  uint8_t tx_cmd  = 0;
+  uint8_t tx_data = 0;
+  uint8_t rx_src  = 0;
+  uint8_t rx_dst  = 0;
+  uint8_t rx_cmd  = 0;
+  uint8_t rx_data = 0;
+
+  /* Gather packet data */
+  rx_src = inc_packet.frame[SRC_ADDR];
+  rx_dst = inc_packet.frame[DST_ADDR];
+  rx_cmd = inc_packet.frame[CMD];
+  rx_data = inc_packet.frame[DATA];
       
-      tx_packet.frame[0] = 8+20;
-      tx_packet.frame[SRC_ADDR] = my_addr;
-      tx_packet.frame[DST_ADDR] = rx_src;  
-      tx_packet.frame[CMD] = tx_cmd;
-      tx_packet.frame[DATA] = tx_data;
-      MRFI_Transmit(&tx_packet, MRFI_TX_TYPE_FORCED);
-      
-      HUB1 &= ~BROADCAST;      
+  /* Perform address filtering */
+  if (rx_dst == my_addr) {
+    int node_index = 0;
+        
+    /* Find index for node in memory */
+    for (int i = (MAX_NODES-1); i >=0; i--) {
+      if (NODE_DATA1[i] == rx_src) {
+        node_index = i;
+        break;
+      }
     }
+        
+    switch (rx_cmd) {
+      case NEW_NODE:
+        for (int i = (MAX_NODES-1); i >= 0; i--) {
+          if (NODE_DATA1[i] == 0) {
+            NODE_DATA1[i] = rx_src;
+            NODE_DATA2[i] |= ALIVE;
+            NODE_DATA3[i] = 36; // Start with highest possible voltage
+            tx_cmd = ACK_NODE;
+            HUB1 |= BROADCAST;
+            break;
+          }
+        }
+        break;
+      case ALARMED_NODE:
+        break;
+      case RESET_NODE:
+        break;
+      case NODE_ALIVE:
+        NODE_DATA2[node_index] |= ALIVE;
+        NODE_DATA3[node_index] = rx_data;
+        break;
+    }
+  }
+
+  /* Send data over RF */
+  if (HUB1&BROADCAST) {
+    mrfiPacket_t tx_packet;
+     
+    tx_packet.frame[0] = 8+20;
+    tx_packet.frame[SRC_ADDR] = my_addr;
+    tx_packet.frame[DST_ADDR] = rx_src;  
+    tx_packet.frame[CMD] = tx_cmd;
+    tx_packet.frame[DATA] = tx_data;
+    MRFI_Transmit(&tx_packet, MRFI_TX_TYPE_FORCED);
+      
+    HUB1 &= ~BROADCAST;      
   }
 }
 
@@ -202,7 +224,7 @@ __interrupt void Timer_A ( void ) {
   WindowCounter--;
   
   if (WindowCounter == 0) {
-    TACCTL0 &= ~CCIE;               // Disable TimerA interrupt
+    TACCTL0 &= ~CCIE;              // Disable TimerA interrupt
     WindowCounter = WINDOW_LENGTH; // Reset counter
     HUB1 |= SEND_STATUS;           // Set flag to send data to PC
   }
@@ -224,11 +246,4 @@ __interrupt void Port2_ISR ( void ) {
 
   /* Required for RF interrupt */
   MRFI_GpioIsr();  
-}
-
-/*------------------------------------------------------------------------------
- * MRFI Rx interrupt service routine
- *----------------------------------------------------------------------------*/
-void MRFI_RxCompleteISR() {
-  HUB1 |= PACKET_RX;
 }

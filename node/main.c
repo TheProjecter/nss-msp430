@@ -15,18 +15,21 @@
 #define TRIGGER_L2H 0x01 // P2.0 - Pin 3
 #define TRIGGER_H2L 0x02 // P2.1 - Pin 4
 
+#define WINDOW_LENGTH 2
+
 #define LINK_MODE     0x01
 #define WAKE_RADIO    0x02
 #define BROADCAST     0x04
 #define PAIRED        0x08
 #define ALARMED       0x10
 #define STATE_CHANGED 0x20
-#define PACKET_RX     0x40
+#define MEASURE_VCC   0x40
 
 /*------------------------------------------------------------------------------
  * Prototypes
  *----------------------------------------------------------------------------*/
 void MRFI_GpioIsr( void );
+void ProcessPacket(mrfiPacket_t inc_packet);
 __interrupt void Timer_A ( void );
 __interrupt void Port1_ISR ( void );
 __interrupt void Port2_ISR ( void );
@@ -35,13 +38,14 @@ __interrupt void ADC10_ISR ( void );
 /*------------------------------------------------------------------------------
  * Globals
  *----------------------------------------------------------------------------*/
-static volatile uint8_t NODE1 = 0; // Status register for device
+static const uint8_t my_addr = 0x01;
+volatile uint8_t NODE1 = 0; // Status register for device
+volatile uint8_t WindowCounter = WINDOW_LENGTH;
 
 /*------------------------------------------------------------------------------
  * Main
  *----------------------------------------------------------------------------*/
 void main ( void ) {
-  static const uint8_t my_addr = 0x01;
   uint8_t tx_cmd;
   uint8_t tx_data;
 
@@ -76,38 +80,26 @@ void main ( void ) {
   while(1) {    
     __bis_SR_register(GIE+LPM3_bits);
     
-    if (NODE1&PACKET_RX) {
-      mrfiPacket_t rx_packet;
-      uint8_t rx_dst;
-      uint8_t rx_cmd;
-      uint8_t rx_data;
-  
-      /* Grab packet from buffer */
-      MRFI_Receive(&rx_packet);
-      NODE1 &= ~PACKET_RX;
-    
-      /* Gather packet data */
-      rx_dst = rx_packet.frame[DST_ADDR];
-      rx_cmd = rx_packet.frame[CMD];
-      rx_data = rx_packet.frame[DATA];
-    
-      /* Perform address filtering */
-      if ((rx_dst == my_addr) || (!(NODE1&PAIRED))) {
-        switch (rx_cmd) {
-          case ACK_NODE:
-            NODE1 |= PAIRED;
-            NODE1 &= ~(LINK_MODE+WAKE_RADIO);
-            break;
-          case ACK_ALARM:
-            NODE1 &= ~(WAKE_RADIO+STATE_CHANGED);
-            break;
-          case ACK_RESET:
-            NODE1 &= ~(WAKE_RADIO+STATE_CHANGED);
-            break;
-          case ACK_ALIVE:
-            break;
-        }
-      }      
+    if (NODE1&MEASURE_VCC) {      
+      volatile long temp;
+      
+      P1OUT |= LED_GREEN;
+      
+      ADC10CTL1 = INCH_11; 
+      ADC10CTL0 = SREF_1 + ADC10SHT_2 + REFON + ADC10ON + ADC10IE + REF2_5V;
+      __delay_cycles(240);
+      ADC10CTL0 |= ENC + ADC10SC;
+      __bis_SR_register(CPUOFF+GIE);
+      temp = ADC10MEM;
+      tx_cmd = NODE_ALIVE;
+      tx_data = (temp*25)/512;
+      ADC10CTL0 &= ~ENC;
+      ADC10CTL0 &= ~(REFON + ADC10ON);     
+      NODE1 &= ~MEASURE_VCC;
+      NODE1 |= (WAKE_RADIO+BROADCAST);
+      TACCTL0 |= CCIE;
+
+      P1OUT &= ~LED_GREEN;
     }
     
     if (NODE1&LINK_MODE) {      
@@ -155,7 +147,45 @@ void main ( void ) {
  * MRFI Rx interrupt service routine
  *----------------------------------------------------------------------------*/
 void MRFI_RxCompleteISR( void ) {
-  NODE1 |= PACKET_RX;
+  mrfiPacket_t rx_packet;
+
+  /* Grab packet from buffer */
+  MRFI_Receive(&rx_packet);
+  
+  /* Send packet off to be processed in another thread */
+  ProcessPacket(rx_packet);
+}
+
+/*------------------------------------------------------------------------------
+ * ProcessPacket method
+ *----------------------------------------------------------------------------*/
+void ProcessPacket(mrfiPacket_t inc_packet) {
+  uint8_t rx_dst;
+  uint8_t rx_cmd;
+  //uint8_t rx_data;
+
+  /* Gather packet data */
+  rx_dst = inc_packet.frame[DST_ADDR];
+  rx_cmd = inc_packet.frame[CMD];
+  //rx_data = inc_packet.frame[DATA];
+
+  /* Perform address filtering */
+  if (rx_dst == my_addr) {
+    switch (rx_cmd) {
+      case ACK_NODE:
+        NODE1 |= PAIRED;
+        NODE1 &= ~(LINK_MODE+WAKE_RADIO);
+        break;
+      case ACK_ALARM:
+        NODE1 &= ~(WAKE_RADIO+STATE_CHANGED);
+        break;
+      case ACK_RESET:
+        NODE1 &= ~(WAKE_RADIO+STATE_CHANGED);
+        break;
+      case ACK_ALIVE:
+        break;
+    }
+  }
 }
 
 /*------------------------------------------------------------------------------
@@ -163,6 +193,16 @@ void MRFI_RxCompleteISR( void ) {
  *----------------------------------------------------------------------------*/
 #pragma vector=TIMERA0_VECTOR
 __interrupt void Timer_A ( void ) {
+  WindowCounter--;
+  
+  if (WindowCounter == 0) {
+    if (!(NODE1&LINK_MODE)) {
+      TACCTL0 &= ~CCIE;
+      NODE1 |= MEASURE_VCC;
+    }
+    
+    WindowCounter = WINDOW_LENGTH;
+  }
   
   /* Wake up CPU after ISR exits */
   __bic_SR_register_on_exit(LPM3_bits);
@@ -195,7 +235,9 @@ __interrupt void Port2_ISR ( void ) {
         NODE1 |= ALARMED;
       } else {
         NODE1 &= ~ALARMED;
-      }     
+      }
+      
+      NODE1 |= STATE_CHANGED;
     }  
   
     /* Rising edge trigger */
@@ -207,9 +249,9 @@ __interrupt void Port2_ISR ( void ) {
       } else {
         NODE1 |= ALARMED;
       }    
-    }
-    
-    NODE1 |= STATE_CHANGED;
+      
+      NODE1 |= STATE_CHANGED;
+    }    
   }
 }
 
