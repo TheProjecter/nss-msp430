@@ -107,7 +107,7 @@ void main ( void ) {
       tx_cmd = NEW_NODE;
       NODE1 |= (WAKE_RADIO+BROADCAST);      
     } else {
-      if (NODE1&STATE_CHANGED) { // Alarm was set/reset
+      if (NODE1&STATE_CHANGED) {
         if (NODE1&ALARMED) {
           P1OUT |= LED_RED;
           tx_cmd = ALARMED_NODE;
@@ -116,6 +116,12 @@ void main ( void ) {
           tx_cmd = RESET_NODE;
         }
         NODE1 |= (WAKE_RADIO+BROADCAST);
+      } else {
+        if (NODE1&ALARMED) {
+          P1OUT ^= LED_RED;
+        } else {
+          P1OUT &= ~LED_RED;
+        }
       }
     }
     
@@ -214,6 +220,7 @@ __interrupt void Timer_A ( void ) {
 #pragma vector=PORT1_VECTOR
 __interrupt void Port1_ISR ( void ) {  
 
+  /* Do nothing... */
 }
 
 /*------------------------------------------------------------------------------
@@ -260,5 +267,7 @@ __interrupt void Port2_ISR ( void ) {
  *----------------------------------------------------------------------------*/
 #pragma vector=ADC10_VECTOR
 __interrupt void ADC10_ISR(void) {
+  
+  /* Turn CPU on */
   __bic_SR_register_on_exit(CPUOFF);
 }

@@ -13,6 +13,7 @@
 #define ALARMED     0x04
 #define SEND_STATUS 0x08
 #define ALIVE       0x10
+#define SEND_ALARM  0x20
 
 /*------------------------------------------------------------------------------
  * Prototypes
@@ -48,25 +49,25 @@ void main( void ) {
   MRFI_RxOn();
 
   /* Initialize UART */
-  P3SEL |= 0x30;
-  UCA0CTL1 = UCSSEL_2;
-  UCA0BR0 = 0x41;
-  UCA0BR1 = 0x3;
-  UCA0MCTL = UCBRS_2;
+  P3SEL    |= 0x30;
+  UCA0CTL1  = UCSSEL_2;
+  UCA0BR0   = 0x41;
+  UCA0BR1   = 0x3;
+  UCA0MCTL  = UCBRS_2;
   UCA0CTL1 &= ~UCSWRST;
-  IE2 |= UCA0RXIE;
+  IE2      |= UCA0RXIE;
   
   /* Setup I/O */
   P1DIR |= (LED_RED+LED_GREEN);
   P1DIR &= ~PUSH_BUTTON;
   P1REN |= PUSH_BUTTON;
-  P1IE |= PUSH_BUTTON;
+  P1IE  |= PUSH_BUTTON;
   
   /* Setup Timer A */
   BCSCTL3 |= LFXT1S_2;   // Source VLO @ 12kHz
-  TACCTL0 = CCIE;        // Enable TimerA interrupt
-  TACCR0 = 12000;        // ~1Hz
-  TACTL = MC_1+TASSEL_1; // Count up + ACLK
+  TACCTL0  = CCIE;        // Enable TimerA interrupt
+  TACCR0   = 12000;        // ~1Hz
+  TACTL    = MC_1+TASSEL_1; // Count up + ACLK
   
   /* Initialize hub settings */
   HUB1 = 0;
@@ -100,7 +101,7 @@ void main( void ) {
       P1OUT &= ~LED_RED;  
     }   
     
-    /* Send data to PC */
+    /* Send status data to PC */
     if (HUB1&SEND_STATUS) {
       for (int i = (MAX_NODES-1); i >= 0; i--) {
         if (NODE_DATA1[i] != 0) {
@@ -126,11 +127,12 @@ void main( void ) {
           
           NODE_DATA2[i] &= ~ALIVE;
           NODE_DATA3[i] = 0;
+          __delay_cycles(300);
         }
       }
       
       HUB1 &= ~SEND_STATUS;
-      TACCTL0 |= CCIE;      
+      TACCTL0 |= CCIE; // Enable TimerA interrupt
     }    
   }
 }
@@ -158,16 +160,17 @@ void ProcessPacket(mrfiPacket_t inc_packet) {
   uint8_t rx_dst  = 0;
   uint8_t rx_cmd  = 0;
   uint8_t rx_data = 0;
+  int node_index  = -1;
+  char uart_txt[] = {"\r\n$ID,A"};
 
   /* Gather packet data */
-  rx_src = inc_packet.frame[SRC_ADDR];
-  rx_dst = inc_packet.frame[DST_ADDR];
-  rx_cmd = inc_packet.frame[CMD];
+  rx_src  = inc_packet.frame[SRC_ADDR];
+  rx_dst  = inc_packet.frame[DST_ADDR];
+  rx_cmd  = inc_packet.frame[CMD];
   rx_data = inc_packet.frame[DATA];
       
   /* Perform address filtering */
   if (rx_dst == my_addr) {
-    int node_index = 0;
         
     /* Find index for node in memory */
     for (int i = (MAX_NODES-1); i >=0; i--) {
@@ -179,37 +182,62 @@ void ProcessPacket(mrfiPacket_t inc_packet) {
         
     switch (rx_cmd) {
       case NEW_NODE:
-        for (int i = (MAX_NODES-1); i >= 0; i--) {
-          if (NODE_DATA1[i] == 0) {
-            NODE_DATA1[i] = rx_src;
-            NODE_DATA2[i] |= ALIVE;
-            NODE_DATA3[i] = 36; // Start with highest possible voltage
-            tx_cmd = ACK_NODE;
-            HUB1 |= BROADCAST;
-            break;
-          }
+        if (node_index == -1) {
+          for (int i = (MAX_NODES-1); i >= 0; i--) {
+           if (NODE_DATA1[i] == 0) {
+             NODE_DATA1[i]  = rx_src;
+             NODE_DATA2[i] |= ALIVE;
+             NODE_DATA3[i]  = 36; // Start with highest possible voltage
+             tx_cmd = ACK_NODE;
+             HUB1 |= BROADCAST;
+             break;
+           }
+         }
+        } else {
+          NODE_DATA2[node_index] |= ALIVE;
+          NODE_DATA3[node_index]  = 36; // Start with highest possible voltage
+          tx_cmd = ACK_NODE;
+          HUB1 |= BROADCAST;
         }
         break;
       case ALARMED_NODE:
+        NODE_DATA2[node_index] |= ALARMED;
+        tx_cmd = ACK_ALARM;
+        uart_txt[6] = '0'+1;
+        HUB1 |= (SEND_ALARM+BROADCAST);
         break;
       case RESET_NODE:
+        NODE_DATA2[node_index] &= ~ALARMED;
+        tx_cmd = ACK_RESET;
+        uart_txt[6] = '0'+0;
+        HUB1 |= (SEND_ALARM+BROADCAST);
         break;
       case NODE_ALIVE:
         NODE_DATA2[node_index] |= ALIVE;
-        NODE_DATA3[node_index] = rx_data;
+        NODE_DATA3[node_index]  = rx_data;
         break;
     }
+  }
+  
+  /* Send alarm/reset change to PC */
+  if (HUB1&SEND_ALARM) {
+    uart_txt[3] = '0'+(((node_index+1)/10)%10);
+    uart_txt[4] = '0'+((node_index+1)%10);
+    
+    TXString(uart_txt, sizeof uart_txt);
+    
+    HUB1 &= ~SEND_ALARM;
   }
 
   /* Send data over RF */
   if (HUB1&BROADCAST) {
     mrfiPacket_t tx_packet;
      
-    tx_packet.frame[0] = 8+20;
+    tx_packet.frame[0]        = 8+20;
     tx_packet.frame[SRC_ADDR] = my_addr;
     tx_packet.frame[DST_ADDR] = rx_src;  
-    tx_packet.frame[CMD] = tx_cmd;
-    tx_packet.frame[DATA] = tx_data;
+    tx_packet.frame[CMD]      = tx_cmd;
+    tx_packet.frame[DATA]     = tx_data;
     MRFI_Transmit(&tx_packet, MRFI_TX_TYPE_FORCED);
       
     HUB1 &= ~BROADCAST;      
@@ -235,7 +263,8 @@ __interrupt void Timer_A ( void ) {
  *----------------------------------------------------------------------------*/
 #pragma vector=PORT1_VECTOR
 __interrupt void Port1_ISR ( void ) {
-  // Do nothing...
+  
+  /* Do nothing... */
 }
 
 /*------------------------------------------------------------------------------
