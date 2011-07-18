@@ -11,9 +11,13 @@
 /*------------------------------------------------------------------------------
  * Defines
  *----------------------------------------------------------------------------*/
-#define MODE_SELECT 0x08 // P4.3 - Pin 8
 #define TRIGGER_L2H 0x01 // P2.0 - Pin 3
 #define TRIGGER_H2L 0x02 // P2.1 - Pin 4
+#define MODE_SELECT 0x04 // P2.2 - Pin 5
+#define ADDR_BIT_1  0x08 // P4.3 - Pin 8
+#define ADDR_BIT_2  0x10 // P4.4 - Pin 9
+#define ADDR_BIT_3  0x20 // P4.5 - Pin 10
+#define ADDR_BIT_4  0x40 // P4.6 - Pin 11
 
 #define WINDOW_LENGTH 2
 
