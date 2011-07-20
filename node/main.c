@@ -14,10 +14,10 @@
 #define TRIGGER_L2H 0x01 // P2.0 - Pin 3
 #define TRIGGER_H2L 0x02 // P2.1 - Pin 4
 #define MODE_SELECT 0x04 // P2.2 - Pin 5
-#define ADDR_BIT_1  0x08 // P4.3 - Pin 8
+#define ADDR_BIT_1  0x08 // P4.3 - Pin 8  - MSB
 #define ADDR_BIT_2  0x10 // P4.4 - Pin 9
 #define ADDR_BIT_3  0x20 // P4.5 - Pin 10
-#define ADDR_BIT_4  0x40 // P4.6 - Pin 11
+#define ADDR_BIT_4  0x40 // P4.6 - Pin 11 - LSB
 
 #define WINDOW_LENGTH 2
 
@@ -62,8 +62,7 @@ void main ( void ) {
   P1DIR &= ~PUSH_BUTTON;               // Enable push button  
   P1REN |= PUSH_BUTTON;                // Enable pull-up/down resistor
   P1IE |= PUSH_BUTTON;                 // Enable interrupt  
-  P2DIR &= ~(TRIGGER_L2H+TRIGGER_H2L); // Enable inputs
-  P4DIR &= ~MODE_SELECT;
+  P2DIR &= ~(TRIGGER_L2H+TRIGGER_H2L+MODE_SELECT); // Enable inputs
   P2IE |= (TRIGGER_L2H+TRIGGER_H2L);   // Enable interrupts
   P2IES &= ~TRIGGER_L2H;               // Set rising edge select
   P2IES |= TRIGGER_H2L;                // Set falling edge select
@@ -242,7 +241,7 @@ __interrupt void Port2_ISR ( void ) {
     if (P2IFG&TRIGGER_H2L) {
       P2IFG &= ~TRIGGER_H2L;
       
-      if (P4IN&MODE_SELECT) {
+      if (P2IN&MODE_SELECT) {
         NODE1 |= ALARMED;
       } else {
         NODE1 &= ~ALARMED;
@@ -255,7 +254,7 @@ __interrupt void Port2_ISR ( void ) {
     if (P2IFG&TRIGGER_L2H) {
       P2IFG &= ~TRIGGER_L2H;
       
-      if (P4IN&MODE_SELECT) {
+      if (P2IN&MODE_SELECT) {
         NODE1 &= ~ALARMED;
       } else {
         NODE1 |= ALARMED;
