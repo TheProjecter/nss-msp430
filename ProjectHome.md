@@ -1,0 +1,1 @@
+NSS is a multi-node security system using the EZ430-2500 target boards from Texas Instruments. The system is designed with flexibility in mind. The nodes may be attached to various sensors, ie, magnetic reed switches for monitoring doors and windows.
